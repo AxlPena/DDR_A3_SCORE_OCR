@@ -9,49 +9,50 @@ import os
 
 start_time = time.time()
 
-pytesseract.pytesseract.tesseract_cmd = 'C:\\Program Files\\Tesseract-OCR\\tesseract.exe'
+pytesseract.pytesseract.tesseract_cmd = (
+    "C:\\Program Files\\Tesseract-OCR\\tesseract.exe"
+)
 
 today = date.today()
 today = today.strftime("%m/%d/%Y")
 
 cwd = os.getcwd()
 print(cwd)
-fcRank = {'MFC': 4, 'PFC': 3, 'GrFC': 2, 'GFC': 1, 'NoFC': 0}
+fcRank = {"MFC": 4, "PFC": 3, "GrFC": 2, "GFC": 1, "NoFC": 0}
 
 
 def remove_outline(img):
     kernel = cv2.getStructuringElement(cv2.MORPH_ELLIPSE, (3, 3))
     temp_img = np.copy(img)
-    img = cv2.morphologyEx(img,  cv2.MORPH_ERODE, kernel)
-    contours, _ = cv2.findContours(
-        img, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
+    img = cv2.morphologyEx(img, cv2.MORPH_ERODE, kernel)
+    contours, _ = cv2.findContours(img, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
     mask = np.zeros_like(img)
     cv2.drawContours(mask, contours, -1, (255, 255, 255), thickness=cv2.FILLED)
 
     return cv2.bitwise_and(cv2.bitwise_not(temp_img), mask, cv2.bitwise_not(temp_img))
+
 
 # webcam input
 # cap = cv2.VideoCapture(3,cv2.CAP_DSHOW)
 
 
 # test video
-cap = cv2.VideoCapture(
-    r"D:\Downloads\videoplayback.mp4")
+cap = cv2.VideoCapture(r"D:\Downloads\videoplayback.mp4")
 
 cap.set(cv2.CAP_PROP_FRAME_WIDTH, 1920)
 cap.set(cv2.CAP_PROP_FRAME_HEIGHT, 1080)
 
-tessdata_dir_config = r'--tessdata-dir ' + os.path.relpath(cwd)
-fileName = 'Scores.csv'
-csv = pd.read_csv(fileName, header='infer')
+tessdata_dir_config = r"--tessdata-dir " + os.path.relpath(cwd)
+fileName = "Scores.csv"
+csv = pd.read_csv(fileName, header="infer")
 # Get video metadata
-video_fps = cap.get(cv2.CAP_PROP_FPS),
+video_fps = (cap.get(cv2.CAP_PROP_FPS),)
 height = cap.get(cv2.CAP_PROP_FRAME_HEIGHT)
 width = cap.get(cv2.CAP_PROP_FRAME_WIDTH)
 print(video_fps)
 count = 0
-print('Running')
-while (cap.isOpened()):
+print("Running")
+while cap.isOpened():
     ret, frame = cap.read()
 
     mNokEX = 3
@@ -60,50 +61,71 @@ while (cap.isOpened()):
     count += 1
 
     if count % 30 == 0:
-
         gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
-        gray_threshold = cv2.threshold(
-            gray, 140, 255,  cv2.THRESH_BINARY_INV)[1]
+        gray_threshold = cv2.threshold(gray, 140, 255, cv2.THRESH_BINARY_INV)[1]
         gray_not = cv2.bitwise_not(gray_threshold)
 
-        cv2.imshow('Frame', gray_not)
-        if cv2.waitKey(1) == ord('q'):
+        cv2.imshow("Frame", gray_not)
+        if cv2.waitKey(1) == ord("q"):
             break
 
         screenOut = pytesseract.image_to_string(
-            gray_not[18:58, 764:1153], lang='eng', config='--psm 6  ' + tessdata_dir_config)
+            gray_not[18:58, 764:1153],
+            lang="eng",
+            config="--psm 6  " + tessdata_dir_config,
+        )
 
         print(screenOut)
 
         if "results" in screenOut.lower():
-
             tabOut = pytesseract.image_to_string(
-                gray_not[552:591, 330:591], lang='eng+jpn', config='--psm 6  ' + tessdata_dir_config)
+                gray_not[552:591, 330:591],
+                lang="eng+jpn",
+                config="--psm 6  " + tessdata_dir_config,
+            )
 
             print(tabOut)
 
             if "max combo" in tabOut.lower():
-
                 song_threshold = cv2.threshold(
-                    gray[415:458, 750:1170], 220, 255,  cv2.THRESH_BINARY)[1]
+                    gray[415:458, 750:1170], 220, 255, cv2.THRESH_BINARY
+                )[1]
 
                 maxOut = pytesseract.image_to_string(
-                    cv2.GaussianBlur(gray_not[550:590, 630:734], (5, 5), 0), lang='eng', config='--psm 6 digits')
+                    cv2.GaussianBlur(gray_not[550:590, 630:734], (5, 5), 0),
+                    lang="eng",
+                    config="--psm 6 digits",
+                )
 
-                comboOut = pytesseract.image_to_string(cv2.GaussianBlur(
-                    gray_not[600:880, 600:734], (7, 7), 0), lang='eng', config='--psm 6 digits')
+                comboOut = pytesseract.image_to_string(
+                    cv2.GaussianBlur(gray_not[600:880, 600:734], (7, 7), 0),
+                    lang="eng",
+                    config="--psm 6 digits",
+                )
 
                 fastOut = pytesseract.image_to_string(
-                    remove_outline(gray_not[734:772, 782:922]), lang='eng', config='--psm 6 digits')
+                    remove_outline(gray_not[734:772, 782:922]),
+                    lang="eng",
+                    config="--psm 6 digits",
+                )
 
                 slowOut = pytesseract.image_to_string(
-                    remove_outline(gray_not[817:858, 782:922]), lang='eng', config='--psm 6 digits')
+                    remove_outline(gray_not[817:858, 782:922]),
+                    lang="eng",
+                    config="--psm 6 digits",
+                )
 
                 songOut = pytesseract.image_to_string(
-                    song_threshold, lang='eng+jpn', config='--psm 6  ' + tessdata_dir_config).strip()
+                    song_threshold,
+                    lang="eng+jpn",
+                    config="--psm 6  " + tessdata_dir_config,
+                ).strip()
 
                 diffOut = pytesseract.image_to_string(
-                    gray_not[152:202, 585:655], lang='eng', config='--psm 6  digits' + tessdata_dir_config)
+                    gray_not[152:202, 585:655],
+                    lang="eng",
+                    config="--psm 6  digits" + tessdata_dir_config,
+                )
 
                 maxOut = int(maxOut.split()[0])
                 marvOut = int(comboOut.split()[0])
@@ -128,36 +150,39 @@ while (cap.isOpened()):
                 else:
                     fullCombo = "NoFC"
 
-                exOut = mNokEX*(marvOut+okOut) + pEX*perfOut + gEX*gretOut
+                exOut = mNokEX * (marvOut + okOut) + pEX * perfOut + gEX * gretOut
 
-                sc = marvOut+perfOut+gretOut+goodOut+missOut+okOut
-                marvS = 1000000/sc
+                sc = marvOut + perfOut + gretOut + goodOut + missOut + okOut
+                marvS = 1000000 / sc
                 perfS = marvS - 10
-                greatS = 0.6*marvS - 10
-                goodS = 0.2*marvS - 10
-                score = (marvOut+okOut)*marvS+perfOut * \
-                    perfS+gretOut*greatS+goodOut*goodS
-                score = np.floor(score/10) * 10
+                greatS = 0.6 * marvS - 10
+                goodS = 0.2 * marvS - 10
+                score = (
+                    (marvOut + okOut) * marvS
+                    + perfOut * perfS
+                    + gretOut * greatS
+                    + goodOut * goodS
+                )
+                score = np.floor(score / 10) * 10
 
-                print('Song: {}'.format(songOut.strip()))
-                print('Diff: '+diffOut.split()[0])
-                print('Max Combo: {}'.format(maxOut))
-                print('Full Combo: ' + fullCombo)
-                print('Marvelous: {}'.format(marvOut))
-                print('Perfect: {}'.format(perfOut))
-                print('Great: {}'.format(gretOut))
-                print('Good: {}'.format(goodOut))
-                print('O.K.: {}'.format(okOut))
-                print('Miss: {}'.format(missOut))
-                print(' ')
-                print('Fast: ' + fastOut.split()[0])
-                print('Slow: '+slowOut.split()[0])
-                print('EX: {}'.format(exOut))
-                print('Money Score: {}'.format(score))
+                print("Song: {}".format(songOut.strip()))
+                print("Diff: " + diffOut.split()[0])
+                print("Max Combo: {}".format(maxOut))
+                print("Full Combo: " + fullCombo)
+                print("Marvelous: {}".format(marvOut))
+                print("Perfect: {}".format(perfOut))
+                print("Great: {}".format(gretOut))
+                print("Good: {}".format(goodOut))
+                print("O.K.: {}".format(okOut))
+                print("Miss: {}".format(missOut))
+                print(" ")
+                print("Fast: " + fastOut.split()[0])
+                print("Slow: " + slowOut.split()[0])
+                print("EX: {}".format(exOut))
+                print("Money Score: {}".format(score))
 
-                if (csv['Song'].eq(songOut)).any():
-
-                    row_index = csv.index[csv['Song'].isin([songOut])][0]
+                if (csv["Song"].eq(songOut)).any():
+                    row_index = csv.index[csv["Song"].isin([songOut])][0]
 
                     # dateOfLastPlay
                     csv.iloc[row_index, 6] = today
@@ -195,14 +220,30 @@ while (cap.isOpened()):
                         csv.iloc[row_index, 14] = int(slowOut.split()[0])
                         csv.iloc[row_index, 15] = int(fastOut.split()[0])
 
-                    csv.to_csv(fileName, mode='w', index=False, header=True)
+                    csv.to_csv(fileName, mode="w", index=False, header=True)
                     print("Updated DDR data for song: " + songOut)
 
                 else:
-                    data = {'Diff': [diffOut.split()[0]], 'Song': [songOut], 'MoneyScore': [score], 'EX': [exOut], 'FC': [fullCombo], 'dateOfFC': [today], 'dateOfLastPlay': [today], 'MaxCombo': [
-                        maxOut], 'Marvelous': [marvOut], 'Perfect': [perfOut],	'Great': [gretOut], 'Good': [goodOut], 'OK': [okOut], 'Miss': [missOut], 'Slow': [slowOut.split()[0]], 'Fast': [fastOut.split()[0]]}
+                    data = {
+                        "Diff": [diffOut.split()[0]],
+                        "Song": [songOut],
+                        "MoneyScore": [score],
+                        "EX": [exOut],
+                        "FC": [fullCombo],
+                        "dateOfFC": [today],
+                        "dateOfLastPlay": [today],
+                        "MaxCombo": [maxOut],
+                        "Marvelous": [marvOut],
+                        "Perfect": [perfOut],
+                        "Great": [gretOut],
+                        "Good": [goodOut],
+                        "OK": [okOut],
+                        "Miss": [missOut],
+                        "Slow": [slowOut.split()[0]],
+                        "Fast": [fastOut.split()[0]],
+                    }
                     df = pd.DataFrame(data)
-                    df.to_csv(fileName, mode='a', index=False, header=False)
+                    df.to_csv(fileName, mode="a", index=False, header=False)
                     print("First time play data added for new song: " + songOut)
                 print("--- %s seconds ---" % (time.time() - start_time))
-                time.sleep(120-(time.time() - start_time))
+                time.sleep(120 - (time.time() - start_time))
