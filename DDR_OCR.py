@@ -243,3 +243,5 @@ while cap.isOpened():
                     print("First time play data added for new song: " + songOut)
                 print("--- %s seconds ---" % (time.time() - start_time))
                 time.sleep(120 - (time.time() - start_time))
+                start_time = time.time()
+
