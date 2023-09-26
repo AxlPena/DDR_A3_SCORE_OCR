@@ -33,11 +33,11 @@ def remove_outline(img):
 
 
 # webcam input
-# cap = cv2.VideoCapture(3,cv2.CAP_DSHOW)
+cap = cv2.VideoCapture(3, cv2.CAP_DSHOW)
 
 
 # test video
-cap = cv2.VideoCapture(r"D:\Downloads\videoplayback.mp4")
+# cap = cv2.VideoCapture(r"D:\Downloads\videoplayback.mp4")
 
 cap.set(cv2.CAP_PROP_FRAME_WIDTH, 1920)
 cap.set(cv2.CAP_PROP_FRAME_HEIGHT, 1080)
