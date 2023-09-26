@@ -4,15 +4,18 @@ import numpy as np
 from datetime import date
 import os
 
+
 def remove_outline(img):
-    kernel = cv2.getStructuringElement(cv2.MORPH_ELLIPSE,(3,3))
+    kernel = cv2.getStructuringElement(cv2.MORPH_ELLIPSE, (3, 3))
     temp_img = np.copy(img)
     img = cv2.morphologyEx(img,  cv2.MORPH_ERODE, kernel)
-    contours, _ = cv2.findContours(img, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
+    contours, _ = cv2.findContours(
+        img, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
     mask = np.zeros_like(img)
-    cv2.drawContours(mask,contours, -1,(255,255,255),thickness=cv2.FILLED)
+    cv2.drawContours(mask, contours, -1, (255, 255, 255), thickness=cv2.FILLED)
 
-    return cv2.bitwise_and(cv2.bitwise_not(temp_img),mask,cv2.bitwise_not(temp_img))
+    return cv2.bitwise_and(cv2.bitwise_not(temp_img), mask, cv2.bitwise_not(temp_img))
+
 
 pytesseract.pytesseract.tesseract_cmd = 'C:\\Program Files\\Tesseract-OCR\\tesseract.exe'
 
@@ -126,5 +129,3 @@ if "results" in screenOut.lower():
         print('EX: {}'.format(exOut))
         print('Money Score: {}'.format(score))
         cv2.waitKey(0)
-
-

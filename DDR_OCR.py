@@ -30,14 +30,16 @@ def remove_outline(img):
 
     return cv2.bitwise_and(cv2.bitwise_not(temp_img), mask, cv2.bitwise_not(temp_img))
 
+# webcam input
 # cap = cv2.VideoCapture(3,cv2.CAP_DSHOW)
 
 
+# test video
 cap = cv2.VideoCapture(
     r"D:\Downloads\videoplayback.mp4")
 
-# cap.set(cv2.CAP_PROP_FRAME_WIDTH, 1920)
-# cap.set(cv2.CAP_PROP_FRAME_HEIGHT, 1080)
+cap.set(cv2.CAP_PROP_FRAME_WIDTH, 1920)
+cap.set(cv2.CAP_PROP_FRAME_HEIGHT, 1080)
 
 tessdata_dir_config = r'--tessdata-dir ' + os.path.relpath(cwd)
 fileName = 'Scores.csv'
@@ -81,7 +83,6 @@ while (cap.isOpened()):
             print(tabOut)
 
             if "max combo" in tabOut.lower():
-                # [slice(550,590),slice(630,734)] [slice(550,880),slice(600,734)]
 
                 song_threshold = cv2.threshold(
                     gray[415:458, 750:1170], 220, 255,  cv2.THRESH_BINARY)[1]
