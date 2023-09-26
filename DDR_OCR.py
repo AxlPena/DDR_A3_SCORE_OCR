@@ -75,16 +75,12 @@ while cap.isOpened():
             config="--psm 6  " + tessdata_dir_config,
         )
 
-        print(screenOut)
-
         if "results" in screenOut.lower():
             tabOut = pytesseract.image_to_string(
                 gray_not[552:591, 330:591],
                 lang="eng+jpn",
                 config="--psm 6  " + tessdata_dir_config,
             )
-
-            print(tabOut)
 
             if "max combo" in tabOut.lower():
                 song_threshold = cv2.threshold(
