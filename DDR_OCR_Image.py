@@ -3,6 +3,8 @@ import pytesseract
 import numpy as np
 from datetime import date
 import os
+import platform
+from wslpath import wslpath as wp
 
 
 def remove_outline(img):
@@ -16,38 +18,42 @@ def remove_outline(img):
     return cv2.bitwise_and(cv2.bitwise_not(temp_img), mask, cv2.bitwise_not(temp_img))
 
 
-pytesseract.pytesseract.tesseract_cmd = (
-    "C:\\Program Files\\Tesseract-OCR\\tesseract.exe"
-)
+tesseract_path = r"C:\Program Files\Tesseract-OCR\tesseract.exe"
+image_path = r"D:\Downloads\image2.png"
+
+if platform.system().lower() != "windows":
+    tesseract_path = "/usr/bin/tesseract"
+    image_path = wp(image_path)
+
+
+pytesseract.pytesseract.tesseract_cmd = tesseract_path
 
 today = date.today()
 today = today.strftime("%m/%d/%Y")
 
 cwd = os.getcwd()
-print(cwd)
+tessdata_dir_config = r"--tessdata-dir " + os.path.relpath(cwd)
+
 fcRank = {"MFC": 4, "PFC": 3, "GrFC": 2, "GFC": 1, "NoFC": 0}
 
 
-frame = cv2.imread(r"D:\Downloads\image2.png")
+img = cv2.imread(image_path)
 
-tessdata_dir_config = r"--tessdata-dir " + os.path.relpath(cwd)
 
 mNokEX = 3
 pEX = 2
 gEX = 1
 
-gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
+gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
 
 gray_threshold = cv2.threshold(gray, 140, 255, cv2.THRESH_BINARY_INV)[1]
 gray_not = cv2.bitwise_not(gray_threshold)
 
-
 cv2.imshow("Frame", gray_not)
 # Waits for a keystroke
 
-
 screenOut = pytesseract.image_to_string(
-    gray_not[18:58, 764:1153], lang="eng", config="--psm 6  " + tessdata_dir_config
+    gray_not[10:58, 764:1153], lang="eng", config="--psm 6  " + tessdata_dir_config
 )
 print(screenOut)
 if "results" in screenOut.lower():
@@ -65,7 +71,7 @@ if "results" in screenOut.lower():
         )[1]
 
         maxOut = pytesseract.image_to_string(
-            cv2.GaussianBlur(gray_not[550:590, 630:734], (5, 5), 0),
+            gray_not[550:600, 630:734],
             lang="eng",
             config="--psm 6 digits",
         )
@@ -85,7 +91,7 @@ if "results" in screenOut.lower():
         slowOut = pytesseract.image_to_string(
             remove_outline(gray_not[817:858, 782:922]),
             lang="eng",
-            config="--psm 6 digits",
+            config="--psm 6 digits -c page_separator=",
         )
 
         songOut = pytesseract.image_to_string(
