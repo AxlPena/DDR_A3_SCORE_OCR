@@ -5,22 +5,37 @@ import numpy as np
 import pandas as pd
 from datetime import date
 import os
+import platform
+from wslpath import wslpath as wp
 
-
+#Process Start Time
 start_time = time.time()
 
-pytesseract.pytesseract.tesseract_cmd = (
-    "C:\\Program Files\\Tesseract-OCR\\tesseract.exe"
-)
+#Paths and Files
+tesseract_path = r"C:\Program Files\Tesseract-OCR\tesseract.exe"
+test_video_path = r"D:\Downloads\videoplayback.mp4"
+cwd = os.getcwd()
+tessdata_dir_config = r"--tessdata-dir " + os.path.relpath(cwd)
+fileName = "Scores.csv"
 
+#Displays Current Working Diredtory
+print(cwd)
+
+if platform.system().lower() != "windows":
+    tesseract_path = "/usr/bin/tesseract"
+    test_video_path = wp(test_video_path)
+
+#Tesseract OCR Initiallization
+pytesseract.pytesseract.tesseract_cmd = tesseract_path
+
+#Current Date
 today = date.today()
 today = today.strftime("%m/%d/%Y")
 
-cwd = os.getcwd()
-print(cwd)
+#Full Combo Rank List
 fcRank = {"MFC": 4, "PFC": 3, "GrFC": 2, "GFC": 1, "NoFC": 0}
 
-
+#Removes the Text Outlines in image
 def remove_outline(img):
     kernel = cv2.getStructuringElement(cv2.MORPH_ELLIPSE, (3, 3))
     temp_img = np.copy(img)
@@ -31,38 +46,46 @@ def remove_outline(img):
 
     return cv2.bitwise_and(cv2.bitwise_not(temp_img), mask, cv2.bitwise_not(temp_img))
 
+#Webcam Input
+# cap = cv2.VideoCapture(3, cv2.CAP_DSHOW)
 
-# webcam input
-cap = cv2.VideoCapture(3, cv2.CAP_DSHOW)
+#Test Video Input
+cap = cv2.VideoCapture(test_video_path)
 
-
-# test video
-# cap = cv2.VideoCapture(r"D:\Downloads\videoplayback.mp4")
-
+#Configures Webcam to 1920x1080 Resolution
 cap.set(cv2.CAP_PROP_FRAME_WIDTH, 1920)
 cap.set(cv2.CAP_PROP_FRAME_HEIGHT, 1080)
 
-tessdata_dir_config = r"--tessdata-dir " + os.path.relpath(cwd)
-fileName = "Scores.csv"
-csv = pd.read_csv(fileName, header="infer")
+
+
 # Get video metadata
 video_fps = (cap.get(cv2.CAP_PROP_FPS),)
 height = cap.get(cv2.CAP_PROP_FRAME_HEIGHT)
 width = cap.get(cv2.CAP_PROP_FRAME_WIDTH)
-print(video_fps)
-count = 0
+
+#Displays Video Metadata
+print("FPS: {} | Resolution: {}x{}".format(video_fps[0],int(width),int(height)))
+
+frame_count = 0
+
+csv = pd.read_csv(fileName, header="infer")
+
 print("Running")
+
 while cap.isOpened():
     ret, frame = cap.read()
 
     mNokEX = 3
     pEX = 2
     gEX = 1
-    count += 1
+    frame_count += 1
 
-    if count % 30 == 0:
+    if frame_count % 30 == 0:
+
         gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
+
         gray_threshold = cv2.threshold(gray, 140, 255, cv2.THRESH_BINARY_INV)[1]
+        
         gray_not = cv2.bitwise_not(gray_threshold)
 
         cv2.imshow("Frame", gray_not)
@@ -70,7 +93,7 @@ while cap.isOpened():
             break
 
         screenOut = pytesseract.image_to_string(
-            gray_not[18:58, 764:1153],
+            gray_not[10:58, 764:1153],
             lang="eng",
             config="--psm 6  " + tessdata_dir_config,
         )
@@ -244,4 +267,3 @@ while cap.isOpened():
                 print("--- %s seconds ---" % (time.time() - start_time))
                 time.sleep(120 - (time.time() - start_time))
                 start_time = time.time()
-
