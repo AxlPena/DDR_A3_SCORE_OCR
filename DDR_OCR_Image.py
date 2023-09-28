@@ -1,10 +1,11 @@
 import cv2
 import pytesseract
+import time
 import numpy as np
 from datetime import date
 import os
 import platform
-from wslpath import wslpath as wp
+import pickle
 
 
 def remove_outline(img):
@@ -22,14 +23,51 @@ tesseract_path = r"C:\Program Files\Tesseract-OCR\tesseract.exe"
 image_path = r"D:\Downloads\image3.png"
 
 if platform.system().lower() != "windows":
+    from wslpath import wslpath as wp
+
     tesseract_path = "/usr/bin/tesseract"
     image_path = wp(image_path)
 
 
 pytesseract.pytesseract.tesseract_cmd = tesseract_path
 
+
 player_loc = "Not Player"
-mainPlayer = "Axlcore?"
+
+if os.path.isfile("userData.p"):
+    mainPlayer = pickle.load(open("userData.p", "rb"))
+    ans = input(
+        "Do you want to grab data for Player: {} ? \nEnter: Y/N \n".format(mainPlayer)
+    )
+
+    while True:
+        if ans.lower() == "y":
+            break
+
+        elif ans.lower() == "n":
+            mainPlayer = input("Enter your name: ")
+            print("Will cache username for future use.")
+            pickle.dump(mainPlayer, open("userData.p", "wb"))
+            time.sleep(2)
+            os.system("cls")
+            break
+
+        else:
+            os.system("cls")
+            ans = input(
+                "Do you want to grab data for Player: {} ? \nEnter: Y/N \n".format(
+                    mainPlayer
+                )
+            )
+
+else:
+    mainPlayer = input("Enter your name:")
+    print("Will cache username for future use.")
+    pickle.dump(mainPlayer, open("userData.p", "wb"))
+    time.sleep(2)
+    os.system("cls")
+
+print("Will be grabbing Score data for user: {}".format(mainPlayer))
 
 today = date.today()
 today = today.strftime("%m/%d/%Y")
@@ -41,7 +79,6 @@ fcRank = {"MFC": 4, "PFC": 3, "GrFC": 2, "GFC": 1, "NoFC": 0}
 
 
 img = cv2.imread(image_path)
-
 
 mNokEX = 3
 pEX = 2
@@ -102,6 +139,7 @@ if "results" in screenOut.lower():
 
     else:
         player_loc = "Not Player"
+        print("{} is not playing this set :C.".format(mainPlayer))
 
     if player_loc != "Not Player":
         tabOut = pytesseract.image_to_string(
@@ -121,25 +159,25 @@ if "results" in screenOut.lower():
             maxOut = pytesseract.image_to_string(
                 gray_not[player_loc[2]],
                 lang="eng",
-                config="--psm 6 digits",
+                config="--psm 6 -c tessedit_char_whitelist=0123456789",
             )
 
             comboOut = pytesseract.image_to_string(
                 cv2.GaussianBlur(gray_not[player_loc[3]], (7, 7), 0),
                 lang="eng",
-                config="--psm 6 digits",
+                config="--psm 6 -c tessedit_char_whitelist=0123456789",
             )
 
             fastOut = pytesseract.image_to_string(
                 remove_outline(gray_not[player_loc[4]]),
                 lang="eng",
-                config="--psm 6 digits",
+                config="--psm 6 -c tessedit_char_whitelist=0123456789",
             )
 
             slowOut = pytesseract.image_to_string(
                 remove_outline(gray_not[player_loc[5]]),
                 lang="eng",
-                config="--psm 6 digits -c page_separator=",
+                config="--psm 6 -c tessedit_char_whitelist=0123456789",
             )
 
             songOut = pytesseract.image_to_string(
@@ -149,7 +187,8 @@ if "results" in screenOut.lower():
             diffOut = pytesseract.image_to_string(
                 gray_not[player_loc[6]],
                 lang="eng",
-                config="--psm 6  digits" + tessdata_dir_config,
+                config="--psm 6  -c tessedit_char_whitelist=0123456789"
+                + tessdata_dir_config,
             )
 
             maxOut = int(maxOut.split()[0])
@@ -188,7 +227,7 @@ if "results" in screenOut.lower():
                 + gretOut * greatS
                 + goodOut * goodS
             )
-            score = np.floor(score / 10) * 10
+            score = int(np.floor(score / 10) * 10)
 
             print("Song: {}".format(songOut))
             print("Diff: " + diffOut.split()[0])
@@ -200,7 +239,6 @@ if "results" in screenOut.lower():
             print("Good: {}".format(goodOut))
             print("O.K.: {}".format(okOut))
             print("Miss: {}".format(missOut))
-            print(" ")
             print("Fast: " + fastOut.split()[0])
             print("Slow: " + slowOut.split()[0])
             print("EX: {}".format(exOut))
