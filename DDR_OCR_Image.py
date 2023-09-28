@@ -147,7 +147,6 @@ if "results" in screenOut.lower():
             lang="eng+jpn",
             config="--psm 6  " + tessdata_dir_config,
         )
-        print(tabOut)
 
         if "max combo" in tabOut.lower():
             # [slice(550,590),slice(630,734)] [slice(550,880),slice(600,734)]
