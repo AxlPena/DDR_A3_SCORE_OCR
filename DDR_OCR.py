@@ -1,41 +1,30 @@
-import cv2
-import pytesseract
 import time
-import numpy as np
-import pandas as pd
 from datetime import date
+import pickle
 import os
 import platform
-from wslpath import wslpath as wp
+import pip._internal as pip
 
-#Process Start Time
-start_time = time.time()
+try:
+    import cv2
+    import pytesseract
+    import pandas as pd
+    import numpy as np
 
-#Paths and Files
-tesseract_path = r"C:\Program Files\Tesseract-OCR\tesseract.exe"
-test_video_path = r"D:\Downloads\videoplayback.mp4"
-cwd = os.getcwd()
-tessdata_dir_config = r"--tessdata-dir " + os.path.relpath(cwd)
-fileName = "Scores.csv"
+except ImportError:
+    print("\n TLDR: You are missing some import packages. \n Going to Fetch them.")
+    pip.main(["install", "-r", "requirements.txt", "--user"])
+    print("All Packages have been installed!")
+    time.sleep(2)
+    os.system("cls")
 
-#Displays Current Working Diredtory
-print(cwd)
+    import cv2
+    import pytesseract
+    import pandas as pd
+    import numpy as np
 
-if platform.system().lower() != "windows":
-    tesseract_path = "/usr/bin/tesseract"
-    test_video_path = wp(test_video_path)
 
-#Tesseract OCR Initiallization
-pytesseract.pytesseract.tesseract_cmd = tesseract_path
-
-#Current Date
-today = date.today()
-today = today.strftime("%m/%d/%Y")
-
-#Full Combo Rank List
-fcRank = {"MFC": 4, "PFC": 3, "GrFC": 2, "GFC": 1, "NoFC": 0}
-
-#Removes the Text Outlines in image
+# Removes the Text Outlines in image
 def remove_outline(img):
     kernel = cv2.getStructuringElement(cv2.MORPH_ELLIPSE, (3, 3))
     temp_img = np.copy(img)
@@ -46,16 +35,106 @@ def remove_outline(img):
 
     return cv2.bitwise_and(cv2.bitwise_not(temp_img), mask, cv2.bitwise_not(temp_img))
 
-#Webcam Input
+
+#  Process Start Time
+start_time = time.time()
+
+# Paths and Files
+tesseract_path = r"C:\Program Files\Tesseract-OCR\tesseract.exe"
+test_video_path = r"D:\Downloads\videoplayback.mp4"
+cwd = os.getcwd()
+tessdata_dir_config = r"--tessdata-dir " + os.path.relpath(cwd)
+fileName = "Scores.csv"
+
+# change paths based on OS
+if platform.system().lower() != "windows":
+    from wslpath import wslpath as wp
+
+    tesseract_path = "/usr/bin/tesseract"
+    test_video_path = wp(test_video_path)
+
+
+# Username Input Section
+player_loc = "Not Player"
+
+if os.path.isfile("userData.p"):
+    mainPlayer = pickle.load(open("userData.p", "rb"))
+    ans = input(
+        "Last Player Data was grabbed for was: {} ?\nDo you wish to grab data for this user? \nEnter: Y/N \n".format(
+            mainPlayer
+        )
+    )
+
+    while True:
+        if ans.lower() == "y" or ans.lower() == "":
+            break
+
+        elif ans.lower() == "n":
+            mainPlayer = input("Enter your name: ")
+            print("Will cache username for future use.")
+            pickle.dump(mainPlayer, open("userData.p", "wb"))
+            time.sleep(2)
+            os.system("cls")
+            break
+
+        else:
+            os.system("cls")
+            ans = input(
+                "Invalid Input! \nDo you want to grab data for Player: {} ? \nEnter: Y/N \n".format(
+                    mainPlayer
+                )
+            )
+
+else:
+    mainPlayer = input("Enter your name:")
+    print("Will cache username for future use.")
+    pickle.dump(mainPlayer, open("userData.p", "wb"))
+    time.sleep(2)
+    os.system("cls")
+
+print("Will be grabbing Score data for user: {}".format(mainPlayer))
+
+# Player 1 & 2 Search tile Locations
+p1_loc = [
+    (slice(552, 591), slice(330, 591)),
+    (slice(415, 458), slice(750, 1170)),
+    (slice(550, 590), slice(630, 734)),
+    (slice(600, 880), slice(600, 734)),
+    (slice(734, 772), slice(782, 922)),
+    (slice(817, 858), slice(782, 922)),
+    (slice(152, 202), slice(585, 655)),
+]
+
+p2_loc = [
+    (slice(552, 591), slice(330, 591)),
+    (slice(415, 458), slice(750, 1170)),
+    (slice(554, 589), slice(1389, 1487)),
+    (slice(600, 866), slice(1375, 1493)),
+    (slice(818, 858), slice(1539, 1664)),
+    (slice(817, 858), slice(782, 922)),
+    (slice(152, 202), slice(1267, 1342)),
+]
+
+# Tesseract OCR Initiallization
+pytesseract.pytesseract.tesseract_cmd = tesseract_path
+
+# Current Date
+today = date.today()
+today = today.strftime("%m/%d/%Y")
+
+# Full Combo Rank List
+fcRank = {"MFC": 4, "PFC": 3, "GrFC": 2, "GFC": 1, "NoFC": 0}
+
+
+# Webcam Input
 # cap = cv2.VideoCapture(3, cv2.CAP_DSHOW)
 
-#Test Video Input
+# Test Video Input
 cap = cv2.VideoCapture(test_video_path)
 
-#Configures Webcam to 1920x1080 Resolution
+# Configures Webcam to 1920x1080 Resolution
 cap.set(cv2.CAP_PROP_FRAME_WIDTH, 1920)
 cap.set(cv2.CAP_PROP_FRAME_HEIGHT, 1080)
-
 
 
 # Get video metadata
@@ -63,8 +142,8 @@ video_fps = (cap.get(cv2.CAP_PROP_FPS),)
 height = cap.get(cv2.CAP_PROP_FRAME_HEIGHT)
 width = cap.get(cv2.CAP_PROP_FRAME_WIDTH)
 
-#Displays Video Metadata
-print("FPS: {} | Resolution: {}x{}".format(video_fps[0],int(width),int(height)))
+# Displays Video Metadata
+print("FPS: {} | Resolution: {}x{}".format(video_fps[0], int(width), int(height)))
 
 frame_count = 0
 
@@ -81,11 +160,10 @@ while cap.isOpened():
     frame_count += 1
 
     if frame_count % 30 == 0:
-
         gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
 
         gray_threshold = cv2.threshold(gray, 140, 255, cv2.THRESH_BINARY_INV)[1]
-        
+
         gray_not = cv2.bitwise_not(gray_threshold)
 
         cv2.imshow("Frame", gray_not)
@@ -99,106 +177,131 @@ while cap.isOpened():
         )
 
         if "results" in screenOut.lower():
-            tabOut = pytesseract.image_to_string(
-                gray_not[552:591, 330:591],
+            player1Out = pytesseract.image_to_string(
+                gray_not[115:153, 39:231],
                 lang="eng+jpn",
                 config="--psm 6  " + tessdata_dir_config,
-            )
+            ).strip()
 
-            if "max combo" in tabOut.lower():
-                song_threshold = cv2.threshold(
-                    gray[415:458, 750:1170], 220, 255, cv2.THRESH_BINARY
-                )[1]
+            player2Out = pytesseract.image_to_string(
+                gray_not[115:153, 1677:1902],
+                lang="eng+jpn",
+                config="--psm 6  " + tessdata_dir_config,
+            ).strip()
 
-                maxOut = pytesseract.image_to_string(
-                    cv2.GaussianBlur(gray_not[550:590, 630:734], (5, 5), 0),
-                    lang="eng",
-                    config="--psm 6 digits",
-                )
+            if player1Out.lower() == mainPlayer.lower():
+                player_loc = p1_loc
 
-                comboOut = pytesseract.image_to_string(
-                    cv2.GaussianBlur(gray_not[600:880, 600:734], (7, 7), 0),
-                    lang="eng",
-                    config="--psm 6 digits",
-                )
+            elif player2Out.lower() == mainPlayer.lower():
+                player_loc = p2_loc
 
-                fastOut = pytesseract.image_to_string(
-                    remove_outline(gray_not[734:772, 782:922]),
-                    lang="eng",
-                    config="--psm 6 digits",
-                )
+            else:
+                player_loc = "Not Player"
+                print("{} is not playing this set :C.".format(mainPlayer))
 
-                slowOut = pytesseract.image_to_string(
-                    remove_outline(gray_not[817:858, 782:922]),
-                    lang="eng",
-                    config="--psm 6 digits",
-                )
-
-                songOut = pytesseract.image_to_string(
-                    song_threshold,
+            if player_loc != "Not Player":
+                tabOut = pytesseract.image_to_string(
+                    gray_not[player_loc[0]],
                     lang="eng+jpn",
                     config="--psm 6  " + tessdata_dir_config,
-                ).strip()
-
-                diffOut = pytesseract.image_to_string(
-                    gray_not[152:202, 585:655],
-                    lang="eng",
-                    config="--psm 6  digits" + tessdata_dir_config,
                 )
 
-                maxOut = int(maxOut.split()[0])
-                marvOut = int(comboOut.split()[0])
-                perfOut = int(comboOut.split()[1])
-                gretOut = int(comboOut.split()[2])
-                goodOut = int(comboOut.split()[3])
-                okOut = int(comboOut.split()[4])
-                missOut = int(comboOut.split()[5])
+                if "max combo" in tabOut.lower():
+                    # [slice(550,590),slice(630,734)] [slice(550,880),slice(600,734)]
 
-                if missOut == goodOut == gretOut == perfOut == 0:
-                    fullCombo = "MFC"
+                    song_threshold = cv2.threshold(
+                        gray[player_loc[1]], 220, 255, cv2.THRESH_BINARY
+                    )[1]
 
-                elif missOut == goodOut == gretOut == 0:
-                    fullCombo = "PFC"
+                    maxOut = pytesseract.image_to_string(
+                        gray_not[player_loc[2]],
+                        lang="eng",
+                        config="--psm 6 -c tessedit_char_whitelist=0123456789",
+                    )
 
-                elif missOut == 0 and goodOut == 0:
-                    fullCombo = "GrFC"
+                    comboOut = pytesseract.image_to_string(
+                        cv2.GaussianBlur(gray_not[player_loc[3]], (7, 7), 0),
+                        lang="eng",
+                        config="--psm 6 -c tessedit_char_whitelist=0123456789",
+                    )
 
-                elif missOut == 0 and goodOut != 0:
-                    fullCombo = "GFC"
+                    fastOut = pytesseract.image_to_string(
+                        remove_outline(gray_not[player_loc[4]]),
+                        lang="eng",
+                        config="--psm 6 -c tessedit_char_whitelist=0123456789",
+                    )
 
-                else:
-                    fullCombo = "NoFC"
+                    slowOut = pytesseract.image_to_string(
+                        remove_outline(gray_not[player_loc[5]]),
+                        lang="eng",
+                        config="--psm 6 -c tessedit_char_whitelist=0123456789",
+                    )
 
-                exOut = mNokEX * (marvOut + okOut) + pEX * perfOut + gEX * gretOut
+                    songOut = pytesseract.image_to_string(
+                        song_threshold,
+                        lang="eng+jpn",
+                        config="--psm 6  " + tessdata_dir_config,
+                    )
 
-                sc = marvOut + perfOut + gretOut + goodOut + missOut + okOut
-                marvS = 1000000 / sc
-                perfS = marvS - 10
-                greatS = 0.6 * marvS - 10
-                goodS = 0.2 * marvS - 10
-                score = (
-                    (marvOut + okOut) * marvS
-                    + perfOut * perfS
-                    + gretOut * greatS
-                    + goodOut * goodS
-                )
-                score = np.floor(score / 10) * 10
+                    diffOut = pytesseract.image_to_string(
+                        gray_not[player_loc[6]],
+                        lang="eng",
+                        config="--psm 6  -c tessedit_char_whitelist=0123456789"
+                        + tessdata_dir_config,
+                    )
 
-                print("Song: {}".format(songOut.strip()))
-                print("Diff: " + diffOut.split()[0])
-                print("Max Combo: {}".format(maxOut))
-                print("Full Combo: " + fullCombo)
-                print("Marvelous: {}".format(marvOut))
-                print("Perfect: {}".format(perfOut))
-                print("Great: {}".format(gretOut))
-                print("Good: {}".format(goodOut))
-                print("O.K.: {}".format(okOut))
-                print("Miss: {}".format(missOut))
-                print(" ")
-                print("Fast: " + fastOut.split()[0])
-                print("Slow: " + slowOut.split()[0])
-                print("EX: {}".format(exOut))
-                print("Money Score: {}".format(score))
+                    maxOut = int(maxOut.split()[0])
+                    marvOut = int(comboOut.split()[0])
+                    perfOut = int(comboOut.split()[1])
+                    gretOut = int(comboOut.split()[2])
+                    goodOut = int(comboOut.split()[3])
+                    okOut = int(comboOut.split()[4])
+                    missOut = int(comboOut.split()[5])
+
+                    if missOut == goodOut == gretOut == perfOut == 0:
+                        fullCombo = "MFC"
+
+                    elif missOut == goodOut == gretOut == 0:
+                        fullCombo = "PFC"
+
+                    elif missOut == 0 and goodOut == 0:
+                        fullCombo = "GrFC"
+
+                    elif missOut == 0 and goodOut != 0:
+                        fullCombo = "GFC"
+
+                    else:
+                        fullCombo = "NoFC"
+
+                    exOut = mNokEX * (marvOut + okOut) + pEX * perfOut + gEX * gretOut
+
+                    sc = marvOut + perfOut + gretOut + goodOut + missOut + okOut
+                    marvS = 1000000 / sc
+                    perfS = marvS - 10
+                    greatS = 0.6 * marvS - 10
+                    goodS = 0.2 * marvS - 10
+                    score = (
+                        (marvOut + okOut) * marvS
+                        + perfOut * perfS
+                        + gretOut * greatS
+                        + goodOut * goodS
+                    )
+                    score = int(np.floor(score / 10) * 10)
+
+                    print("Song: {}".format(songOut))
+                    print("Diff: " + diffOut.split()[0])
+                    print("Max Combo: {}".format(maxOut))
+                    print("Full Combo: " + fullCombo)
+                    print("Marvelous: {}".format(marvOut))
+                    print("Perfect: {}".format(perfOut))
+                    print("Great: {}".format(gretOut))
+                    print("Good: {}".format(goodOut))
+                    print("O.K.: {}".format(okOut))
+                    print("Miss: {}".format(missOut))
+                    print("Fast: " + fastOut.split()[0])
+                    print("Slow: " + slowOut.split()[0])
+                    print("EX: {}".format(exOut))
+                    print("Money Score: {}".format(score))
 
                 if (csv["Song"].eq(songOut)).any():
                     row_index = csv.index[csv["Song"].isin([songOut])][0]
