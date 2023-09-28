@@ -43,7 +43,7 @@ cwd = os.getcwd()
 tessdata_dir_config = r"--tessdata-dir " + os.path.relpath(cwd)
 fileName = "Scores.csv"
 
-# change paths based on OS
+# Change paths based on OS
 if platform.system().lower() != "windows":
     from wslpath import wslpath as wp
 
@@ -112,9 +112,6 @@ p2_loc = [
     (slice(152, 202), slice(1267, 1342)),
 ]
 
-# Frame Capture Flag
-captured = False
-
 # Tesseract OCR Initiallization
 pytesseract.pytesseract.tesseract_cmd = tesseract_path
 
@@ -145,14 +142,23 @@ width = cap.get(cv2.CAP_PROP_FRAME_WIDTH)
 # Displays Video Metadata
 print("FPS: {} | Resolution: {}x{}".format(video_fps, int(width), int(height)))
 
+# Frame Count Initialization
 frame_count = 0
 
+# Frame Capture Flag
+frame_captured = False
+
+# Loading CSV File
 csv = pd.read_csv(fileName, header="infer")
 
+# Lets User know script is running
 print("Running")
+
 #  Process Start Time
 start_time = time.time()
 
+
+# Video Processing Loop
 while cap.isOpened():
     ret, frame = cap.read()
 
@@ -161,13 +167,17 @@ while cap.isOpened():
     gEX = 1
     frame_count += 1
 
-    if frame_count % 30 == 0 and captured == False:
+    if (frame_count % 30 == 0) and (frame_captured == False):
+        # Converts Frame to Grayscale
         gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
 
+        # Creates Binary Thresholded Image
         gray_threshold = cv2.threshold(gray, 130, 255, cv2.THRESH_BINARY_INV)[1]
 
+        # Inverts Thresholded Image
         gray_not = cv2.bitwise_not(gray_threshold)
 
+        # Scans for results in Results Page
         screenOut = pytesseract.image_to_string(
             gray_not[10:58, 764:1153],
             lang="eng",
@@ -175,18 +185,21 @@ while cap.isOpened():
         )
 
         if "results" in screenOut.lower():
+            # Scans for Player 1 Name
             player1Out = pytesseract.image_to_string(
                 gray_not[115:153, 39:231],
                 lang="eng+jpn",
                 config="--psm 6  " + tessdata_dir_config,
             ).strip()
 
+            # Scans for Player 2 Name
             player2Out = pytesseract.image_to_string(
                 gray_not[115:153, 1677:1902],
                 lang="eng+jpn",
                 config="--psm 6  " + tessdata_dir_config,
             ).strip()
 
+            # Selects Image Slices based on user Player position
             if player1Out.lower() == mainPlayer.lower():
                 player_loc = p1_loc
 
@@ -198,6 +211,7 @@ while cap.isOpened():
                 print("{} is not playing this set :C.".format(mainPlayer))
 
             if player_loc != "Not Player":
+                # Scans for max combo text in Results Page
                 tabOut = pytesseract.image_to_string(
                     gray_not[player_loc[0]],
                     lang="eng+jpn",
@@ -205,20 +219,24 @@ while cap.isOpened():
                 )
 
                 if "max combo" in tabOut.lower():
-                    cv2.imshow("Frame", gray_not)
-                    if cv2.waitKey(1) == ord("q"):
-                        break
+                    # Displays Frame to be processed
+                    # cv2.imshow("Frame", gray_not)
+                    # if cv2.waitKey(1) == ord("q"):
+                    #     break
 
+                    # Creates seperate threshold for Song title ROI
                     song_threshold = cv2.threshold(
                         gray[player_loc[1]], 220, 255, cv2.THRESH_BINARY
                     )[1]
 
+                    # Scans text in Max Combo ROI
                     maxOut = pytesseract.image_to_string(
                         gray_not[player_loc[2]],
                         lang="eng",
                         config="--psm 6 -c tessedit_char_whitelist=0123456789",
                     )
 
+                    # Scans text in Combo ROI
                     comboOut = pytesseract.image_to_string(
                         cv2.GaussianBlur(
                             remove_outline(gray_not[player_loc[3]]), (7, 7), 0
@@ -227,24 +245,28 @@ while cap.isOpened():
                         config="--psm 6 -c tessedit_char_whitelist=0123456789",
                     )
 
+                    # Scans text in Fast steps ROI
                     fastOut = pytesseract.image_to_string(
                         remove_outline(gray_not[player_loc[4]]),
                         lang="eng",
                         config="--psm 6 -c tessedit_char_whitelist=0123456789",
                     )
 
+                    # Scans text in Slow steps ROI
                     slowOut = pytesseract.image_to_string(
                         remove_outline(gray_not[player_loc[5]]),
                         lang="eng",
                         config="--psm 6 -c tessedit_char_whitelist=0123456789",
                     )
 
+                    # Scans text in Song title ROI
                     songOut = pytesseract.image_to_string(
                         song_threshold,
                         lang="eng+jpn",
                         config="--psm 6  " + tessdata_dir_config,
                     )
 
+                    # Scans text in Difficulty ROI
                     diffOut = pytesseract.image_to_string(
                         gray_not[player_loc[6]],
                         lang="eng",
@@ -252,6 +274,7 @@ while cap.isOpened():
                         + tessdata_dir_config,
                     )
 
+                    # Splits Combo step text
                     maxOut = int(maxOut.split()[0])
                     marvOut = int(comboOut.split()[0])
                     perfOut = int(comboOut.split()[1])
@@ -260,6 +283,7 @@ while cap.isOpened():
                     okOut = int(comboOut.split()[4])
                     missOut = int(comboOut.split()[5])
 
+                    # Calculates Full combo status based on combo steps
                     if missOut == goodOut == gretOut == perfOut == 0:
                         fullCombo = "MFC"
 
@@ -275,8 +299,10 @@ while cap.isOpened():
                     else:
                         fullCombo = "NoFC"
 
+                    # Calculates the EX score
                     exOut = mNokEX * (marvOut + okOut) + pEX * perfOut + gEX * gretOut
 
+                    # Calclates the Money Score
                     sc = marvOut + perfOut + gretOut + goodOut + missOut + okOut
                     marvS = 1000000 / sc
                     perfS = marvS - 10
@@ -290,6 +316,7 @@ while cap.isOpened():
                     )
                     score = int(np.floor(score / 10) * 10)
 
+                    # Displays the text in the console
                     print("Song: {}".format(songOut))
                     print("Diff: " + diffOut.split()[0])
                     print("Max Combo: {}".format(maxOut))
@@ -305,6 +332,7 @@ while cap.isOpened():
                     print("EX: {}".format(exOut))
                     print("Money Score: {}".format(score))
 
+                # Updates or Stores data into CSV File
                 if (csv["Song"].eq(songOut)).any():
                     row_index = csv.index[csv["Song"].isin([songOut])][0]
 
@@ -369,9 +397,9 @@ while cap.isOpened():
                     df = pd.DataFrame(data)
                     df.to_csv(fileName, mode="a", index=False, header=False)
                     print("First time play data added for new song: " + songOut)
-                captured = True
+                frame_captured = True
                 print("--- %s seconds ---" % (time.time() - start_time))
                 start_time = time.time()
 
-    elif (captured == True) and ((frame_count % (140 * video_fps)) == 0):
-        captured = False
+    elif (frame_captured == True) and ((frame_count % (140 * video_fps)) == 0):
+        frame_captured = False
