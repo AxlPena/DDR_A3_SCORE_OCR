@@ -67,7 +67,7 @@ if os.path.isfile("userData.p"):
             break
 
         elif ans.lower() == "n":
-            mainPlayer = input("Enter your name: ")
+            mainPlayer = input("Enter your DDR Username: ")
             print("Will cache username for future use.")
             pickle.dump(mainPlayer, open("userData.p", "wb"))
             time.sleep(2)
