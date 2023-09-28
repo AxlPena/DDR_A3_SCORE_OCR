@@ -87,7 +87,7 @@ if os.path.isfile("userData.p"):
 
 else:
     mainPlayer = input("Enter your name:")
-    print("Will cache username for future use.")
+    print("Caching username for future use.")
     pickle.dump(mainPlayer, open("userData.p", "wb"))
     time.sleep(2)
     os.system("cls")
@@ -108,12 +108,15 @@ p1_loc = [
 p2_loc = [
     (slice(552, 591), slice(330, 591)),
     (slice(415, 458), slice(750, 1170)),
-    (slice(554, 589), slice(1389, 1487)),
-    (slice(600, 866), slice(1375, 1493)),
+    (slice(554, 590), slice(1389, 1487)),
+    (slice(600, 880), slice(1375, 1493)),
     (slice(818, 858), slice(1539, 1664)),
     (slice(817, 858), slice(782, 922)),
     (slice(152, 202), slice(1267, 1342)),
 ]
+
+# Frame Capture Flag
+captured = False
 
 # Tesseract OCR Initiallization
 pytesseract.pytesseract.tesseract_cmd = tesseract_path
@@ -138,12 +141,12 @@ cap.set(cv2.CAP_PROP_FRAME_HEIGHT, 1080)
 
 
 # Get video metadata
-video_fps = (cap.get(cv2.CAP_PROP_FPS),)
+video_fps = int((cap.get(cv2.CAP_PROP_FPS)))
 height = cap.get(cv2.CAP_PROP_FRAME_HEIGHT)
 width = cap.get(cv2.CAP_PROP_FRAME_WIDTH)
 
 # Displays Video Metadata
-print("FPS: {} | Resolution: {}x{}".format(video_fps[0], int(width), int(height)))
+print("FPS: {} | Resolution: {}x{}".format(video_fps, int(width), int(height)))
 
 frame_count = 0
 
@@ -159,16 +162,12 @@ while cap.isOpened():
     gEX = 1
     frame_count += 1
 
-    if frame_count % 30 == 0:
+    if frame_count % 30 == 0 and captured == False:
         gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
 
-        gray_threshold = cv2.threshold(gray, 140, 255, cv2.THRESH_BINARY_INV)[1]
+        gray_threshold = cv2.threshold(gray, 130, 255, cv2.THRESH_BINARY_INV)[1]
 
         gray_not = cv2.bitwise_not(gray_threshold)
-
-        cv2.imshow("Frame", gray_not)
-        if cv2.waitKey(1) == ord("q"):
-            break
 
         screenOut = pytesseract.image_to_string(
             gray_not[10:58, 764:1153],
@@ -207,7 +206,9 @@ while cap.isOpened():
                 )
 
                 if "max combo" in tabOut.lower():
-                    # [slice(550,590),slice(630,734)] [slice(550,880),slice(600,734)]
+                    cv2.imshow("Frame", gray_not)
+                    if cv2.waitKey(1) == ord("q"):
+                        break
 
                     song_threshold = cv2.threshold(
                         gray[player_loc[1]], 220, 255, cv2.THRESH_BINARY
@@ -220,7 +221,9 @@ while cap.isOpened():
                     )
 
                     comboOut = pytesseract.image_to_string(
-                        cv2.GaussianBlur(gray_not[player_loc[3]], (7, 7), 0),
+                        cv2.GaussianBlur(
+                            remove_outline(gray_not[player_loc[3]]), (7, 7), 0
+                        ),
                         lang="eng",
                         config="--psm 6 -c tessedit_char_whitelist=0123456789",
                     )
@@ -367,6 +370,9 @@ while cap.isOpened():
                     df = pd.DataFrame(data)
                     df.to_csv(fileName, mode="a", index=False, header=False)
                     print("First time play data added for new song: " + songOut)
+                captured = True
                 print("--- %s seconds ---" % (time.time() - start_time))
-                time.sleep(120 - (time.time() - start_time))
                 start_time = time.time()
+
+    elif (captured == True) and ((frame_count % (140 * video_fps)) == 0):
+        captured = False
