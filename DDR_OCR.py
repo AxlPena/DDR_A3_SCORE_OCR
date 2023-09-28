@@ -83,12 +83,13 @@ if os.path.isfile("userData.p"):
             )
 
 else:
-    mainPlayer = input("Enter your name:")
+    mainPlayer = input("Enter your DDR Username:")
     print("Caching username for future use.")
     pickle.dump(mainPlayer, open("userData.p", "wb"))
     time.sleep(2)
     os.system("cls")
 
+print("This Script will only work for A3 and native 1080p.")
 print("Will be grabbing Score data for user: {}".format(mainPlayer))
 
 # Player 1 & 2 Search tile Locations
