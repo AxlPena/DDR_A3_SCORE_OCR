@@ -25,3 +25,6 @@ These strings are then stored within a csv using Pandas for later viewing.
 3) Python Packages needed are listed under requirements.txt  
 *The main script will install these packages automatically if they aren't already installed.*
 
+
+## Help me pay my bills (Donation Page)
+[Donation Link](https://www.buymeacoffee.com/axlpena)
