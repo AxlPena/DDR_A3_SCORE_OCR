@@ -36,9 +36,6 @@ def remove_outline(img):
     return cv2.bitwise_and(cv2.bitwise_not(temp_img), mask, cv2.bitwise_not(temp_img))
 
 
-#  Process Start Time
-start_time = time.time()
-
 # Paths and Files
 tesseract_path = r"C:\Program Files\Tesseract-OCR\tesseract.exe"
 test_video_path = r"D:\Downloads\videoplayback.mp4"
@@ -153,6 +150,8 @@ frame_count = 0
 csv = pd.read_csv(fileName, header="infer")
 
 print("Running")
+#  Process Start Time
+start_time = time.time()
 
 while cap.isOpened():
     ret, frame = cap.read()
