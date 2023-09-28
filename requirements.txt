@@ -1,0 +1,5 @@
+numpy==1.24.4
+opencv_python==4.8.0.76
+pandas==2.0.3
+pytesseract==0.3.10
+wslpath_python==0.0.3
