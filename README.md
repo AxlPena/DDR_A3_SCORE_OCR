@@ -2,11 +2,11 @@
 
 This is a mini-project that I made for a friend so that they are able to track EX Score and other DDR A3 Gold/White Cab data.  
 
-The code uses OpenCV and PyTesseract (a python wrapper for tesseract) to scan ROI(regions of interest) and interpret the image text as text strings.  
+The code uses OpenCV and PyTesseract (a python wrapper for tesseract) to scan ROI (regions of interest) and interpret the image text as text strings.  
 
 These strings are then stored within a csv using Pandas for later viewing.
 
-##Some of the Caveats
+## Some of the Caveats
 
 1) The input has to be 1920x1080, one could upscale the video/webcam input but the OCR accuracy will vary.
 
