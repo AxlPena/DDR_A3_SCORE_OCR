@@ -64,6 +64,7 @@ if os.path.isfile("userData.p"):
 
     while True:
         if ans.lower() == "y" or ans.lower() == "":
+            os.system("cls")
             break
 
         elif ans.lower() == "n":
