@@ -4,13 +4,14 @@ import pickle
 import os
 import platform
 import pip._internal as pip
-from pygrabber.dshow_graph import FilterGraph
+
 
 try:
     import cv2
     import pytesseract
     import pandas as pd
     import numpy as np
+    from pygrabber.dshow_graph import FilterGraph
 
 except ImportError:
     print("\n TLDR: You are missing some import packages. \n Going to Fetch them.")
@@ -23,6 +24,7 @@ except ImportError:
     import pytesseract
     import pandas as pd
     import numpy as np
+    from pygrabber.dshow_graph import FilterGraph
 
 
 # Removes the Text Outlines in image
