@@ -20,7 +20,7 @@ def remove_outline(img):
 
 
 tesseract_path = r"C:\Program Files\Tesseract-OCR\tesseract.exe"
-image_path = r"D:\Downloads\image3.png"
+image_path = r"D:\Downloads\image.png"
 
 if platform.system().lower() != "windows":
     from wslpath import wslpath as wp
@@ -37,15 +37,18 @@ player_loc = "Not Player"
 if os.path.isfile("userData.p"):
     mainPlayer = pickle.load(open("userData.p", "rb"))
     ans = input(
-        "Do you want to grab data for Player: {} ? \nEnter: Y/N \n".format(mainPlayer)
+        "Last Player Data was grabbed for was: {} ?\nDo you wish to grab data for this user? \nEnter: Y/N \n".format(
+            mainPlayer
+        )
     )
 
     while True:
-        if ans.lower() == "y":
+        if ans.lower() == "y" or ans.lower() == "":
+            os.system("cls")
             break
 
         elif ans.lower() == "n":
-            mainPlayer = input("Enter your name: ")
+            mainPlayer = input("Enter your DDR Username: ")
             print("Will cache username for future use.")
             pickle.dump(mainPlayer, open("userData.p", "wb"))
             time.sleep(2)
@@ -55,14 +58,14 @@ if os.path.isfile("userData.p"):
         else:
             os.system("cls")
             ans = input(
-                "Do you want to grab data for Player: {} ? \nEnter: Y/N \n".format(
+                "Invalid Input! \nDo you want to grab data for Player: {} ? \nEnter: Y/N \n".format(
                     mainPlayer
                 )
             )
 
 else:
-    mainPlayer = input("Enter your name:")
-    print("Will cache username for future use.")
+    mainPlayer = input("Enter your DDR Username:")
+    print("Caching username for future use.")
     pickle.dump(mainPlayer, open("userData.p", "wb"))
     time.sleep(2)
     os.system("cls")
@@ -88,6 +91,7 @@ gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
 
 gray_threshold = cv2.threshold(gray, 130, 255, cv2.THRESH_BINARY_INV)[1]
 gray_not = cv2.bitwise_not(gray_threshold)
+
 
 cv2.imshow("Frame", gray_not)
 # Waits for a keystroke
@@ -184,7 +188,7 @@ if "results" in screenOut.lower():
             )
 
             diffOut = pytesseract.image_to_string(
-                gray_not[player_loc[6]],
+                cv2.dilate(gray_not[player_loc[6]], np.ones((3, 3), np.uint8)),
                 lang="eng",
                 config="--psm 6  -c tessedit_char_whitelist=0123456789"
                 + tessdata_dir_config,
