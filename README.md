@@ -77,6 +77,9 @@ These strings are then stored within a csv using Pandas for later viewing.
 
 6. Your data is saved in _Scores.csv_.
 
+
+## Please use for Recreational Purposes only.
+
 ## Help me pay my bills (Donation Page)
 
 [Donation Link](https://www.buymeacoffee.com/axlpena)
