@@ -8,6 +8,29 @@ import platform
 import pickle
 
 
+try:
+    import cv2
+    import pytesseract
+    import pandas as pd
+    import numpy as np
+    from tkinter import *
+    from tkinter import filedialog as fd
+
+except ImportError:
+    print("\n TLDR: You are missing some import packages. \n Going to Fetch them.")
+    pip.main(["install", "-r", "requirements.txt", "--user"])
+    print("All Packages have been installed!")
+    time.sleep(2)
+    os.system("cls")
+
+    import cv2
+    import pytesseract
+    import pandas as pd
+    import numpy as np
+    from tkinter import *
+    from tkinter import filedialog as fd
+
+
 def remove_outline(img):
     kernel = cv2.getStructuringElement(cv2.MORPH_ELLIPSE, (3, 3))
     temp_img = np.copy(img)
@@ -20,7 +43,14 @@ def remove_outline(img):
 
 
 tesseract_path = r"C:\Program Files\Tesseract-OCR\tesseract.exe"
-image_path = r"D:\Downloads\image.png"
+
+
+window = Tk()
+window.withdraw()
+
+window.title("Select the Screenshot to Scan.")
+
+image_path = fd.askopenfilename(initialdir="/", parent=window)
 
 if platform.system().lower() != "windows":
     from wslpath import wslpath as wp
@@ -33,6 +63,7 @@ pytesseract.pytesseract.tesseract_cmd = tesseract_path
 
 
 player_loc = "Not Player"
+
 
 if os.path.isfile("userData.p"):
     mainPlayer = pickle.load(open("userData.p", "rb"))
@@ -93,9 +124,9 @@ gray_threshold = cv2.threshold(gray, 130, 255, cv2.THRESH_BINARY_INV)[1]
 gray_not = cv2.bitwise_not(gray_threshold)
 
 
-cv2.imshow("Frame", gray_not)
-# Waits for a keystroke
-cv2.waitKey(0)
+# cv2.imshow("Frame", gray_not)
+# # Waits for a keystroke
+# cv2.waitKey(0)
 
 screenOut = pytesseract.image_to_string(
     gray_not[10:58, 764:1153], lang="eng", config="--psm 6  " + tessdata_dir_config
