@@ -12,6 +12,8 @@ try:
     import pandas as pd
     import numpy as np
     from pygrabber.dshow_graph import FilterGraph
+    from tkinter import *
+    from tkinter import filedialog as fd
 
 except ImportError:
     print("\n TLDR: You are missing some import packages. \n Going to Fetch them.")
@@ -25,6 +27,8 @@ except ImportError:
     import pandas as pd
     import numpy as np
     from pygrabber.dshow_graph import FilterGraph
+    from tkinter import *
+    from tkinter import filedialog as fd
 
 
 # Removes the Text Outlines in image
@@ -41,17 +45,64 @@ def remove_outline(img):
 
 # Paths and Files
 tesseract_path = r"C:\Program Files\Tesseract-OCR\tesseract.exe"
-test_video_path = r"D:\Downloads\videoplayback.mp4"
+video_path = r"D:\Downloads\videoplayback.mp4"
 cwd = os.getcwd()
 tessdata_dir_config = r"--tessdata-dir " + os.path.relpath(cwd)
 fileName = "Scores.csv"
+
+ans = input("Which will you be scanning? \nEnter: OBS or Video(V)\n")
+
+while True:
+    if ans.lower() == "obs" or ans.lower() == "":
+        os.system("cls")
+
+        # Verfies that OBS Virtual camera is On
+        entered = 0
+        while "OBS Virtual Camera" not in FilterGraph().get_input_devices():
+            if entered != 1:
+                print(
+                    "Turn on OBS Virtual Camera! \nTo stop script hit Ctrl+C within terminal."
+                )
+                entered = 1
+
+        print(
+            "OBS Virtual Camera has been detected. \nPlease verify that the proper gameplay source is being captured. \nThen verify that the Virtual Camera is running.\n"
+        )
+
+        # Grabs camera index
+        cam_idx = FilterGraph().get_input_devices().index("OBS Virtual Camera")
+
+        # Webcam Input
+        cap = cv2.VideoCapture(cam_idx)
+
+        break
+
+    elif ans.lower() == "video" or ans.lower() == "v":
+        window = Tk()
+        window.withdraw()
+        window.title("Select the video to Scan.")
+        image_path = fd.askopenfilename(initialdir="/", parent=window)
+
+        # Video Input
+        os.system("cls")
+        print("Using Video Input.")
+        cap = cv2.VideoCapture(video_path)
+
+        break
+
+    else:
+        os.system("cls")
+        ans = input(
+            "Invalid Input! \nWhich will you be scanning? \nEnter: OBS or Video(V)\n"
+        )
+
 
 # Change paths based on OS
 if platform.system().lower() != "windows":
     from wslpath import wslpath as wp
 
     tesseract_path = "/usr/bin/tesseract"
-    test_video_path = wp(test_video_path)
+    video_path = wp(video_path)
 
 
 # Username Input Section
@@ -115,40 +166,15 @@ p2_loc = [
     (slice(152, 202), slice(1267, 1342)),
 ]
 
+# Full Combo Rank List
+fcRank = {"MFC": 4, "PFC": 3, "GrFC": 2, "GFC": 1, "NoFC": 0}
+
 # Tesseract OCR Initiallization
 pytesseract.pytesseract.tesseract_cmd = tesseract_path
 
 # Current Date
 today = date.today()
 today = today.strftime("%m/%d/%Y")
-
-# Full Combo Rank List
-fcRank = {"MFC": 4, "PFC": 3, "GrFC": 2, "GFC": 1, "NoFC": 0}
-
-# Verfies that OBS Virtual camera is On
-entered = 0
-while "OBS Virtual Camera" not in FilterGraph().get_input_devices():
-    if entered != 1:
-        print(
-            "Turn on OBS Virtual Camera! \nTo stop script hit Ctrl+C within terminal."
-        )
-        entered = 1
-
-print(
-    "OBS Virtual Camera has been detected. \nPlease verify that the proper gameplay source is being captured. \nThen verify that the Virtual Camera is running.\n"
-)
-
-# Grabs camera index
-cam_idx = FilterGraph().get_input_devices().index("OBS Virtual Camera")
-
-
-# Webcam Input
-# cap = cv2.VideoCapture(cam_idx)
-
-# Test Video Input
-os.system("cls")
-print("Using test video.")
-cap = cv2.VideoCapture(test_video_path)
 
 
 # Configures Webcam to 1920x1080 Resolution
@@ -176,14 +202,14 @@ if height != 1080 and width != 1920:
     )
     upscale_flag = 1
 
-# Displays Video Metadata
-print("FPS: {} | Input Resolution: {}x{}".format(video_fps, int(width), int(height)))
-
 # Frame Count Initialization
 frame_count = 0
 
 # Frame Capture Flag
 frame_captured = False
+
+# Displays Video Metadata
+print("FPS: {} | Input Resolution: {}x{}".format(video_fps, int(width), int(height)))
 
 # Loading CSV File
 csv = pd.read_csv(fileName, header="infer")
@@ -192,10 +218,9 @@ csv = pd.read_csv(fileName, header="infer")
 print("Will be grabbing Score data for user: {}".format(mainPlayer))
 # Lets User know script is running
 print("Running")
-
+print("Hit Ctrl+C to exit the script. \nType cls to clear terminal view, if needed.")
 #  Process Start Time
 start_time = time.time()
-
 
 # Video Processing Loop
 while cap.isOpened():
