@@ -4,6 +4,7 @@ import pickle
 import os
 import platform
 import pip._internal as pip
+from pygrabber.dshow_graph import FilterGraph
 
 try:
     import cv2
@@ -90,8 +91,6 @@ else:
     time.sleep(2)
     os.system("cls")
 
-print("This Script will only work for A3 and native 1080p.")
-print("Will be grabbing Score data for user: {}".format(mainPlayer))
 
 # Player 1 & 2 Search tile Locations
 p1_loc = [
@@ -124,12 +123,31 @@ today = today.strftime("%m/%d/%Y")
 # Full Combo Rank List
 fcRank = {"MFC": 4, "PFC": 3, "GrFC": 2, "GFC": 1, "NoFC": 0}
 
+# Verfies that OBS Virtual camera is On
+entered = 0
+while "OBS Virtual Camera" not in FilterGraph().get_input_devices():
+    if entered != 1:
+        print(
+            "Turn on OBS Virtual Camera! \nTo stop script hit Ctrl+C within terminal."
+        )
+        entered = 1
+
+print(
+    "OBS Virtual Camera has been detected. \nPlease verify that the proper gameplay source is being captured. \nThen verify that the Virtual Camera is running.\n"
+)
+
+# Grabs camera index
+cam_idx = FilterGraph().get_input_devices().index("OBS Virtual Camera")
+
 
 # Webcam Input
-# cap = cv2.VideoCapture(3, cv2.CAP_DSHOW)
+# cap = cv2.VideoCapture(cam_idx)
 
 # Test Video Input
+os.system("cls")
+print("Using test video.")
 cap = cv2.VideoCapture(test_video_path)
+
 
 # Configures Webcam to 1920x1080 Resolution
 cap.set(cv2.CAP_PROP_FRAME_WIDTH, 1920)
@@ -138,11 +156,26 @@ cap.set(cv2.CAP_PROP_FRAME_HEIGHT, 1080)
 
 # Get video metadata
 video_fps = int((cap.get(cv2.CAP_PROP_FPS)))
-height = cap.get(cv2.CAP_PROP_FRAME_HEIGHT)
-width = cap.get(cv2.CAP_PROP_FRAME_WIDTH)
+if video_fps == 0:
+    print(
+        "Make sure OBS Virtual Camera FPS is set to 60 FPS in settings. \nWill force 60 FPS. \nResults may Vary.\n"
+    )
+    cap.set(cv2.CAP_PROP_FPS, 60)
+    video_fps = int((cap.get(cv2.CAP_PROP_FPS)))
+
+height = int(cap.get(cv2.CAP_PROP_FRAME_HEIGHT))
+width = int(cap.get(cv2.CAP_PROP_FRAME_WIDTH))
+
+# Used to deteremine if upscaling is needed.
+upscale_flag = 0
+if height != 1080 and width != 1920:
+    print(
+        "Make sure OBS Virtual Camera Resolution is set to 1920x1080 in settings. \nWill force resolution, this will take more processing power and may slow down your system. \n***Results will Vary!***\n"
+    )
+    upscale_flag = 1
 
 # Displays Video Metadata
-print("FPS: {} | Resolution: {}x{}".format(video_fps, int(width), int(height)))
+print("FPS: {} | Input Resolution: {}x{}".format(video_fps, int(width), int(height)))
 
 # Frame Count Initialization
 frame_count = 0
@@ -153,6 +186,8 @@ frame_captured = False
 # Loading CSV File
 csv = pd.read_csv(fileName, header="infer")
 
+# Displaying User name
+print("Will be grabbing Score data for user: {}".format(mainPlayer))
 # Lets User know script is running
 print("Running")
 
@@ -170,6 +205,10 @@ while cap.isOpened():
     frame_count += 1
 
     if (frame_count % 30 == 0) and (frame_captured == False):
+        # Resizes image
+        if upscale_flag == 1:
+            frame = cv2.resize(frame, (1920, 1080), interpolation=cv2.INTER_LANCZOS4)
+
         # Converts Frame to Grayscale
         gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
 
@@ -270,7 +309,7 @@ while cap.isOpened():
 
                     # Scans text in Difficulty ROI
                     diffOut = pytesseract.image_to_string(
-                        gray_not[player_loc[6]],
+                        cv2.dilate(gray_not[player_loc[6]], np.ones((3, 3), np.uint8)),
                         lang="eng",
                         config="--psm 6  -c tessedit_char_whitelist=0123456789"
                         + tessdata_dir_config,
