@@ -6,7 +6,7 @@ The code uses OpenCV and PyTesseract (a python wrapper for tesseract) to scan RO
 
 These strings are then stored within a csv using Pandas for later viewing.
 
-## Some of the Caveats
+## Some Caveats
 
 1. The input has to be 1920x1080, the script will automatically upscale/downscale the video/webcam input(if it is 1920x1080) but the OCR accuracy will vary.
 
