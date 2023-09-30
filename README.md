@@ -1,8 +1,8 @@
-# Dance Dance Revolution (DDR) A3 Optical Character Recognition (OCR) Tool
+# Dance Dance Revolution (DDR) A3 & Grand Prix Optical Character Recognition (OCR) Tool
 
-This is a mini-project that I made for a friend so that they are able to track EX Score and other DDR A3 Gold/White Cab data.
+This is a mini-project that I made for a friend so that they are able to track EX Score and other DDR A3 Gold/White Cab or Grand Prix data.
 
-The code uses OpenCV and PyTesseract (a python wrapper for tesseract) to scan ROI (regions of interest) and interpret the image text as text strings.
+The code uses OpenCV and PyTesseract (a python wrapper for tesseract) to scan ROI (regions of interest) and interprets the image text as strings.
 
 These strings are then stored within a csv using Pandas for later viewing.
 
@@ -41,9 +41,11 @@ These strings are then stored within a csv using Pandas for later viewing.
 
 5. Select OBS from option in terminal.
 
-6. Enter your player name and enjoy the data capture.
+6. Select whether you will be scanning A3 or Grand Prix gameplay
 
-7. Your data is saved in _Scores.csv_.
+7. Enter your player name and enjoy the data capture.
+
+8. Your data is saved in _Scores.csv_.
 
 ## How to use Script with Video:
 
@@ -57,9 +59,11 @@ These strings are then stored within a csv using Pandas for later viewing.
 
 4. Select desired video to scan from within the popup window.
 
-4. Enter your player name and enjoy the data capture.
+6. Select whether you will be scanning A3 or Grand Prix gameplay
 
-5. Your data is saved in _Scores.csv_.
+5. Enter your player name and enjoy the data capture.
+
+6. Your data is saved in _Scores.csv_.
 
 ## How to script with a Screenshot:
 
@@ -73,10 +77,11 @@ These strings are then stored within a csv using Pandas for later viewing.
 
 4. Select desired image to scan from within the popup window.
 
+6. Select whether you will be scanning A3 or Grand Prix gameplay
+
 5. Enter your player name and enjoy the data capture.
 
 6. Your data is saved in _Scores.csv_.
-
 
 ## Please use for Recreational Purposes only.
 
