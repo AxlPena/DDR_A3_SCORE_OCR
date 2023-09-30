@@ -393,8 +393,8 @@ print("Great: {}".format(gretOut))
 print("Good: {}".format(goodOut))
 print("O.K.: {}".format(okOut))
 print("Miss: {}".format(missOut))
-print("Fast: " + fastOut.split()[0])
-print("Slow: " + slowOut.split()[0])
+print("Fast: " + str(fastOut))
+print("Slow: " + str(slowOut))
 print("EX: {}".format(exOut))
 print("Money Score: {}".format(score))
 
@@ -457,8 +457,8 @@ else:
         "Good": [goodOut],
         "OK": [okOut],
         "Miss": [missOut],
-        "Slow": [slowOut.split()[0]],
-        "Fast": [fastOut.split()[0]],
+        "Slow": [slowOut],
+        "Fast": [fastOut],
     }
     df = pd.DataFrame(data)
     df.to_csv(fileName, mode="a", index=False, header=False)
