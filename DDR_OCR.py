@@ -45,7 +45,6 @@ def remove_outline(img):
 
 # Paths and Files
 tesseract_path = r"C:\Program Files\Tesseract-OCR\tesseract.exe"
-video_path = r"D:\Downloads\videoplayback.mp4"
 cwd = os.getcwd()
 tessdata_dir_config = r"--tessdata-dir " + os.path.relpath(cwd)
 fileName = "Scores.csv"
@@ -81,7 +80,7 @@ while True:
         window = Tk()
         window.withdraw()
         window.title("Select the video to Scan.")
-        image_path = fd.askopenfilename(initialdir="/", parent=window)
+        video_path = fd.askopenfilename(initialdir="/", parent=window)
 
         # Video Input
         os.system("cls")
@@ -100,18 +99,19 @@ while True:
 # Grand Prix Image Flag
 gp_flag = 0
 
+# User inouts which version of thegame will be scanned
 ans = input("Which will you be scanning? \nEnter: A3 or Grand Prix(GP)\n")
 
 while True:
     if ans.lower() == "grand prix" or ans.lower() == "gp":
         os.system("cls")
-        os.system("The image is of Grand Prix Results.")
+        print("The image is of Grand Prix Results.")
         gp_flag = 1
         break
 
     elif ans.lower() == "a3" or ans.lower() == "":
         os.system("cls")
-        os.system("The image is of A3 Results.")
+        print("The image is of A3 Results.")
         break
 
     else:
@@ -121,7 +121,7 @@ while True:
         )
 
 
-# Change paths based on OS
+# Change paths based on Windows or WSL
 if platform.system().lower() != "windows":
     from wslpath import wslpath as wp
 
@@ -129,7 +129,7 @@ if platform.system().lower() != "windows":
     video_path = wp(video_path)
 
 
-# Username Input Section
+# Username Input Step
 player_loc = "Not Player"
 
 if os.path.isfile("userData.p"):
@@ -168,6 +168,7 @@ else:
     time.sleep(2)
     os.system("cls")
 
+print("Will be grabbing Score data for user: {}".format(mainPlayer))
 
 # Player 1 & 2 Search tile Locations
 p1_loc = [
@@ -183,14 +184,24 @@ p1_loc = [
 p2_loc = [
     (slice(552, 591), slice(330, 591)),
     (slice(415, 458), slice(750, 1170)),
-    (slice(554, 590), slice(1389, 1487)),
-    (slice(600, 880), slice(1375, 1493)),
+    (slice(554, 589), slice(1389, 1487)),
+    (slice(600, 866), slice(1375, 1493)),
     (slice(818, 858), slice(1539, 1664)),
     (slice(817, 858), slice(782, 922)),
     (slice(152, 202), slice(1267, 1342)),
 ]
 
-gp_loc = [
+gp1_loc = [
+    (slice(552, 591), slice(330, 591)),
+    (slice(415, 458), slice(750, 1170)),
+    (slice(550, 590), slice(630, 734)),
+    (slice(600, 866), slice(1375, 1493)),
+    (slice(734, 772), slice(782, 922)),
+    (slice(817, 858), slice(782, 922)),
+    (slice(152, 202), slice(585, 655)),
+]
+
+gp2_loc = [
     (slice(552, 591), slice(330, 591)),
     (slice(415, 458), slice(750, 1170)),
     (slice(550, 590), slice(630, 734)),
@@ -200,11 +211,14 @@ gp_loc = [
     (slice(152, 202), slice(1267, 1342)),
 ]
 
-# Full Combo Rank List
-fcRank = {"MFC": 4, "PFC": 3, "GrFC": 2, "GFC": 1, "NoFC": 0}
+# Loading CSV File
+csv = pd.read_csv(fileName, header="infer")
 
 # Tesseract OCR Initiallization
 pytesseract.pytesseract.tesseract_cmd = tesseract_path
+
+# Full Combo Rank List
+fcRank = {"MFC": 4, "PFC": 3, "GrFC": 2, "GFC": 1, "NoFC": 0}
 
 # Current Date
 today = date.today()
@@ -245,8 +259,6 @@ frame_captured = False
 # Displays Video Metadata
 print("FPS: {} | Input Resolution: {}x{}".format(video_fps, int(width), int(height)))
 
-# Loading CSV File
-csv = pd.read_csv(fileName, header="infer")
 
 # Displaying User name
 print("Will be grabbing Score data for user: {}".format(mainPlayer))
@@ -302,8 +314,11 @@ while cap.isOpened():
             ).strip()
 
             # Selects Image Slices based on user Player position
-            if gp_flag == 1:
-                player_loc = gp_loc
+            if gp_flag == 1 and player1Out.lower() == mainPlayer.lower():
+                player_loc = gp1_loc
+
+            elif gp_flag == 1 and player2Out.lower() == mainPlayer.lower():
+                player_loc = gp2_loc
 
             elif player1Out.lower() == mainPlayer.lower():
                 player_loc = p1_loc
