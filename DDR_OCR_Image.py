@@ -62,8 +62,11 @@ image_path = fd.askopenfilename(initialdir="/", parent=window)
 # Grand Prix Image Flag
 gp_flag = 0
 
+# E-Amusement Card Image Flag
+ea_flag = 0
+
 # User inouts which version of thegame will be scanned
-ans = input("Which will you be scanning? \nEnter: A3 or Grand Prix(GP)\n")
+ans = input("Which will you be scanning? \nEnter: A3 or Grand Prix(GP) or EAmuse(EA)\n")
 
 while True:
     if ans.lower() == "grand prix" or ans.lower() == "gp":
@@ -77,10 +80,16 @@ while True:
         print("The image is of A3 Results.")
         break
 
+    elif ans.lower() == "eamuse" or ans.lower() == "ea":
+        os.system("cls")
+        print("The image is of E-Amusement Card Results.")
+        ea_flag = 1
+        break
+
     else:
         os.system("cls")
         ans = input(
-            "Invalid Input! \nWhich will you be scanning? \nEnter: A3 or Grand Prix(GP)\n"
+            "Invalid Input! \nWhich will you be scanning? \nEnter: A3 or Grand Prix(GP) or EAmuse(EA)\n"
         )
 
 # Change paths based on Windows or WSL
@@ -174,6 +183,13 @@ gp2_loc = [
     (slice(152, 202), slice(1267, 1342)),
 ]
 
+ea_loc = [
+    (slice(710, 1040), slice(485, 650)),
+    (slice(95, 160), slice(480, 1825)),
+    (slice(35, 75), slice(1425, 1820)),
+    (slice(255, 350), slice(780, 910)),
+    (slice(560, 610), slice(1020, 1190)),
+]
 # Loading CSV File
 csv = pd.read_csv(fileName, header="infer")
 
@@ -215,207 +231,235 @@ gray_not = cv2.bitwise_not(gray_threshold)
 # cv2.imshow("Frame", gray_not)
 # # Waits for a keystroke
 # cv2.waitKey(0)
+if ea_flag == 0:
+    screenOut = pytesseract.image_to_string(
+        gray_not[10:58, 764:1153], lang="eng", config="--psm 10  " + tessdata_dir_config
+    )
 
-screenOut = pytesseract.image_to_string(
-    gray_not[10:58, 764:1153], lang="eng", config="--psm 10  " + tessdata_dir_config
-)
-
-
-if "results" in screenOut.lower():
-    player1Out = pytesseract.image_to_string(
-        gray_not[115:158, 39:231],
-        lang="eng+jpn",
-        config="--psm 10  " + tessdata_dir_config,
-    ).strip()
-
-    player2Out = pytesseract.image_to_string(
-        gray_not[115:158, 1677:1902],
-        lang="eng+jpn",
-        config="--psm 10  " + tessdata_dir_config,
-    ).strip()
-
-    if gp_flag == 1 and player1Out.lower() == mainPlayer.lower():
-        player_loc = gp1_loc
-
-    elif gp_flag == 1 and player2Out.lower() == mainPlayer.lower():
-        player_loc = gp2_loc
-
-    elif player1Out.lower() == mainPlayer.lower():
-        player_loc = p1_loc
-
-    elif player2Out.lower() == mainPlayer.lower():
-        player_loc = p2_loc
-
-    else:
-        player_loc = "Not Player"
-        print("{} is not playing this set :C.".format(mainPlayer))
-
-    if player_loc != "Not Player":
-        tabOut = pytesseract.image_to_string(
-            gray_not[player_loc[0]],
+    if "results" in screenOut.lower():
+        player1Out = pytesseract.image_to_string(
+            gray_not[115:158, 39:231],
             lang="eng+jpn",
             config="--psm 10  " + tessdata_dir_config,
-        )
+        ).strip()
 
-        if "max combo" in tabOut.lower():
-            # [slice(550,590),slice(630,734)] [slice(550,880),slice(600,734)]
+        player2Out = pytesseract.image_to_string(
+            gray_not[115:158, 1677:1902],
+            lang="eng+jpn",
+            config="--psm 10  " + tessdata_dir_config,
+        ).strip()
 
-            song_threshold = cv2.threshold(
-                gray[player_loc[1]], 220, 255, cv2.THRESH_BINARY
-            )[1]
+        if gp_flag == 1 and player1Out.lower() == mainPlayer.lower():
+            player_loc = gp1_loc
 
-            maxOut = pytesseract.image_to_string(
-                gray_not[player_loc[2]],
-                lang="eng",
-                config="--psm 10 -c tessedit_char_whitelist=0123456789",
-            )
+        elif gp_flag == 1 and player2Out.lower() == mainPlayer.lower():
+            player_loc = gp2_loc
 
-            comboOut = pytesseract.image_to_string(
-                cv2.GaussianBlur(gray_not[player_loc[3]], (5, 5), 0),
-                lang="eng",
-                config="--psm 6 -c tessedit_char_whitelist=0123456789",
-            )
+        elif player1Out.lower() == mainPlayer.lower():
+            player_loc = p1_loc
 
-            fastOut = pytesseract.image_to_string(
-                remove_outline(gray_not[player_loc[4]]),
-                lang="eng",
-                config="--psm 10 -c tessedit_char_whitelist=0123456789",
-            )
+        elif player2Out.lower() == mainPlayer.lower():
+            player_loc = p2_loc
 
-            slowOut = pytesseract.image_to_string(
-                remove_outline(gray_not[player_loc[5]]),
-                lang="eng",
-                config="--psm 10 -c tessedit_char_whitelist=0123456789",
-            )
+        else:
+            player_loc = "Not Player"
+            print("{} is not playing this set :C.".format(mainPlayer))
 
-            songOut = pytesseract.image_to_string(
-                song_threshold,
+        if player_loc != "Not Player":
+            tabOut = pytesseract.image_to_string(
+                gray_not[player_loc[0]],
                 lang="eng+jpn",
                 config="--psm 10  " + tessdata_dir_config,
             )
 
-            diffOut = pytesseract.image_to_string(
-                cv2.dilate(gray_not[player_loc[6]], np.ones((3, 3), np.uint8)),
-                lang="eng",
-                config="--psm 10  -c tessedit_char_whitelist=0123456789"
-                + tessdata_dir_config,
-            )
+            if "max combo" in tabOut.lower():
+                # [slice(550,590),slice(630,734)] [slice(550,880),slice(600,734)]
 
-            maxOut = int(maxOut.split()[0])
-            marvOut = int(comboOut.split()[0])
-            perfOut = int(comboOut.split()[1])
-            gretOut = int(comboOut.split()[2])
-            goodOut = int(comboOut.split()[3])
-            okOut = int(comboOut.split()[4])
-            missOut = int(comboOut.split()[5])
+                song_threshold = cv2.threshold(
+                    gray[player_loc[1]], 220, 255, cv2.THRESH_BINARY
+                )[1]
 
-            if missOut == goodOut == gretOut == perfOut == 0:
-                fullCombo = "MFC"
+                maxOut = pytesseract.image_to_string(
+                    gray_not[player_loc[2]],
+                    lang="eng",
+                    config="--psm 10 -c tessedit_char_whitelist=0123456789",
+                )
 
-            elif missOut == goodOut == gretOut == 0:
-                fullCombo = "PFC"
+                comboOut = pytesseract.image_to_string(
+                    cv2.GaussianBlur(gray_not[player_loc[3]], (5, 5), 0),
+                    lang="eng",
+                    config="--psm 6 -c tessedit_char_whitelist=0123456789",
+                )
 
-            elif missOut == 0 and goodOut == 0:
-                fullCombo = "GrFC"
+                fastOut = int(
+                    pytesseract.image_to_string(
+                        remove_outline(gray_not[player_loc[4]]),
+                        lang="eng",
+                        config="--psm 10 -c tessedit_char_whitelist=0123456789",
+                    ).split()[0]
+                )
 
-            elif missOut == 0 and goodOut != 0:
-                fullCombo = "GFC"
+                slowOut = int(
+                    pytesseract.image_to_string(
+                        remove_outline(gray_not[player_loc[5]]),
+                        lang="eng",
+                        config="--psm 10 -c tessedit_char_whitelist=0123456789",
+                    ).split()[0]
+                )
 
-            else:
-                fullCombo = "NoFC"
+                songOut = pytesseract.image_to_string(
+                    song_threshold,
+                    lang="eng+jpn",
+                    config="--psm 10  " + tessdata_dir_config,
+                )
 
-            exOut = mNokEX * (marvOut + okOut) + pEX * perfOut + gEX * gretOut
+                diffOut = pytesseract.image_to_string(
+                    cv2.dilate(gray_not[player_loc[6]], np.ones((3, 3), np.uint8)),
+                    lang="eng",
+                    config="--psm 10  -c tessedit_char_whitelist=0123456789"
+                    + tessdata_dir_config,
+                )
 
-            sc = marvOut + perfOut + gretOut + goodOut + missOut + okOut
-            marvS = 1000000 / sc
-            perfS = marvS - 10
-            greatS = 0.6 * marvS - 10
-            goodS = 0.2 * marvS - 10
-            score = (
-                (marvOut + okOut) * marvS
-                + perfOut * perfS
-                + gretOut * greatS
-                + goodOut * goodS
-            )
-            score = int(np.floor(score / 10) * 10)
+else:
+    song_threshold = cv2.threshold(gray[ea_loc[1]], 220, 255, cv2.THRESH_BINARY)[1]
 
-            print("Song: {}".format(songOut))
-            print("Diff: " + diffOut.split()[0])
-            print("Max Combo: {}".format(maxOut))
-            print("Full Combo: " + fullCombo)
-            print("Marvelous: {}".format(marvOut))
-            print("Perfect: {}".format(perfOut))
-            print("Great: {}".format(gretOut))
-            print("Good: {}".format(goodOut))
-            print("O.K.: {}".format(okOut))
-            print("Miss: {}".format(missOut))
-            print("Fast: " + fastOut.split()[0])
-            print("Slow: " + slowOut.split()[0])
-            print("EX: {}".format(exOut))
-            print("Money Score: {}".format(score))
+    songOut = pytesseract.image_to_string(
+        gray_not[ea_loc[1]],
+        lang="eng+jpn",
+        config="--psm 10  " + tessdata_dir_config,
+    )
 
-            # Updates or Stores data into CSV File
-            if (csv["Song"].eq(songOut)).any():
-                row_index = csv.index[csv["Song"].isin([songOut])][0]
+    maxOut = pytesseract.image_to_string(
+        gray_not[ea_loc[4]],
+        lang="eng",
+        config="--psm 10 -c tessedit_char_whitelist=0123456789",
+    )
 
-                # dateOfLastPlay
-                csv.iloc[row_index, 6] = today
+    comboOut = pytesseract.image_to_string(
+        cv2.GaussianBlur(gray_not[ea_loc[0]], (5, 5), 0),
+        lang="eng",
+        config="--psm 6 -c tessedit_char_whitelist=0123456789",
+    )
 
-                # Money Score
-                if csv.iloc[row_index, 2] <= score:
-                    csv.iloc[row_index, 2] = score
+    diffOut = pytesseract.image_to_string(
+        gray_not[ea_loc[3]],
+        lang="eng",
+        config="--psm 10  -c tessedit_char_whitelist=0123456789" + tessdata_dir_config,
+    )
 
-                # EX
-                if csv.iloc[row_index, 3] <= exOut:
-                    csv.iloc[row_index, 3] = exOut
+    fastOut = "N/A"
+    slowOut = "N/A"
 
-                # FC
-                if fcRank[csv.iloc[row_index, 4]] <= fcRank[fullCombo]:
-                    csv.iloc[row_index, 4] = fullCombo
-                    # dateOfFC
-                    csv.iloc[row_index, 5] = today
+maxOut = int(maxOut.split()[0])
+marvOut = int(comboOut.split()[0])
+perfOut = int(comboOut.split()[1])
+gretOut = int(comboOut.split()[2])
+goodOut = int(comboOut.split()[3])
+okOut = int(comboOut.split()[4])
+missOut = int(comboOut.split()[5])
 
-                elif csv.iloc[row_index, 4] == fullCombo:
-                    # dateOfFC
-                    csv.iloc[row_index, 5] = today
+if missOut == goodOut == gretOut == perfOut == 0:
+    fullCombo = "MFC"
 
-                # MaxCombo
-                if csv.iloc[row_index, 7] < maxOut:
-                    csv.iloc[row_index, 7] = maxOut
+elif missOut == goodOut == gretOut == 0:
+    fullCombo = "PFC"
 
-                # Combo Scores
-                if csv.iloc[row_index, 8] <= marvOut:
-                    csv.iloc[row_index, 8] = marvOut
-                    csv.iloc[row_index, 9] = perfOut
-                    csv.iloc[row_index, 10] = gretOut
-                    csv.iloc[row_index, 11] = goodOut
-                    csv.iloc[row_index, 12] = okOut
-                    csv.iloc[row_index, 13] = missOut
-                    csv.iloc[row_index, 14] = int(slowOut.split()[0])
-                    csv.iloc[row_index, 15] = int(fastOut.split()[0])
+elif missOut == 0 and goodOut == 0:
+    fullCombo = "GrFC"
 
-                    csv.to_csv(fileName, mode="w", index=False, header=True)
-                    print("Updated DDR data for song: " + songOut)
+elif missOut == 0 and goodOut != 0:
+    fullCombo = "GFC"
 
-            else:
-                data = {
-                    "Diff": [diffOut.split()[0]],
-                    "Song": [songOut],
-                    "MoneyScore": [score],
-                    "EX": [exOut],
-                    "FC": [fullCombo],
-                    "dateOfFC": [today],
-                    "dateOfLastPlay": [today],
-                    "MaxCombo": [maxOut],
-                    "Marvelous": [marvOut],
-                    "Perfect": [perfOut],
-                    "Great": [gretOut],
-                    "Good": [goodOut],
-                    "OK": [okOut],
-                    "Miss": [missOut],
-                    "Slow": [slowOut.split()[0]],
-                    "Fast": [fastOut.split()[0]],
-                }
-                df = pd.DataFrame(data)
-                df.to_csv(fileName, mode="a", index=False, header=False)
-                print("First time play data added for new song: " + songOut)
+else:
+    fullCombo = "NoFC"
+
+exOut = mNokEX * (marvOut + okOut) + pEX * perfOut + gEX * gretOut
+
+sc = marvOut + perfOut + gretOut + goodOut + missOut + okOut
+marvS = 1000000 / sc
+perfS = marvS - 10
+greatS = 0.6 * marvS - 10
+goodS = 0.2 * marvS - 10
+score = (marvOut + okOut) * marvS + perfOut * perfS + gretOut * greatS + goodOut * goodS
+score = int(np.floor(score / 10) * 10)
+
+print("Song: {}".format(songOut))
+print("Diff: " + diffOut.split()[0])
+print("Max Combo: {}".format(maxOut))
+print("Full Combo: " + fullCombo)
+print("Marvelous: {}".format(marvOut))
+print("Perfect: {}".format(perfOut))
+print("Great: {}".format(gretOut))
+print("Good: {}".format(goodOut))
+print("O.K.: {}".format(okOut))
+print("Miss: {}".format(missOut))
+print("Fast: " + fastOut.split()[0])
+print("Slow: " + slowOut.split()[0])
+print("EX: {}".format(exOut))
+print("Money Score: {}".format(score))
+
+# Updates or Stores data into CSV File
+if (csv["Song"].eq(songOut)).any():
+    row_index = csv.index[csv["Song"].isin([songOut])][0]
+
+    # dateOfLastPlay
+    csv.iloc[row_index, 6] = today
+
+    # Money Score
+    if csv.iloc[row_index, 2] <= score:
+        csv.iloc[row_index, 2] = score
+
+    # EX
+    if csv.iloc[row_index, 3] <= exOut:
+        csv.iloc[row_index, 3] = exOut
+
+    # FC
+    if fcRank[csv.iloc[row_index, 4]] <= fcRank[fullCombo]:
+        csv.iloc[row_index, 4] = fullCombo
+        # dateOfFC
+        csv.iloc[row_index, 5] = today
+
+    elif csv.iloc[row_index, 4] == fullCombo:
+        # dateOfFC
+        csv.iloc[row_index, 5] = today
+
+    # MaxCombo
+    if csv.iloc[row_index, 7] < maxOut:
+        csv.iloc[row_index, 7] = maxOut
+
+    # Combo Scores
+    if csv.iloc[row_index, 8] <= marvOut:
+        csv.iloc[row_index, 8] = marvOut
+        csv.iloc[row_index, 9] = perfOut
+        csv.iloc[row_index, 10] = gretOut
+        csv.iloc[row_index, 11] = goodOut
+        csv.iloc[row_index, 12] = okOut
+        csv.iloc[row_index, 13] = missOut
+        csv.iloc[row_index, 14] = slowOut
+        csv.iloc[row_index, 15] = fastOut
+
+        csv.to_csv(fileName, mode="w", index=False, header=True)
+        print("Updated DDR data for song: " + songOut)
+
+else:
+    data = {
+        "Diff": [diffOut.split()[0]],
+        "Song": [songOut],
+        "MoneyScore": [score],
+        "EX": [exOut],
+        "FC": [fullCombo],
+        "dateOfFC": [today],
+        "dateOfLastPlay": [today],
+        "MaxCombo": [maxOut],
+        "Marvelous": [marvOut],
+        "Perfect": [perfOut],
+        "Great": [gretOut],
+        "Good": [goodOut],
+        "OK": [okOut],
+        "Miss": [missOut],
+        "Slow": [slowOut.split()[0]],
+        "Fast": [fastOut.split()[0]],
+    }
+    df = pd.DataFrame(data)
+    df.to_csv(fileName, mode="a", index=False, header=False)
+    print("First time play data added for new song: " + songOut)
