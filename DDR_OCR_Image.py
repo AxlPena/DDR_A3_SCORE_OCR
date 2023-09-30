@@ -31,6 +31,7 @@ except ImportError:
     from tkinter import filedialog as fd
 
 
+# Removes the Text Outlines in image
 def remove_outline(img):
     kernel = cv2.getStructuringElement(cv2.MORPH_ELLIPSE, (3, 3))
     temp_img = np.copy(img)
@@ -42,33 +43,38 @@ def remove_outline(img):
     return cv2.bitwise_and(cv2.bitwise_not(temp_img), mask, cv2.bitwise_not(temp_img))
 
 
+# Paths and Files
 tesseract_path = r"C:\Program Files\Tesseract-OCR\tesseract.exe"
+cwd = os.getcwd()
+tessdata_dir_config = r"--tessdata-dir " + os.path.relpath(cwd)
+fileName = "Scores.csv"
 
-
+# Creates File Dialog window for file selection
 window = Tk()
 window.withdraw()
-
 window.title("Select the Screenshot to Scan.")
 os.system("cls")
-print("Select the Screenshot to Scan.")
 
+print("Select the Screenshot to Scan.")
+# Path to selected File
 image_path = fd.askopenfilename(initialdir="/", parent=window)
 
 # Grand Prix Image Flag
 gp_flag = 0
 
+# User inouts which version of thegame will be scanned
 ans = input("Which will you be scanning? \nEnter: A3 or Grand Prix(GP)\n")
 
 while True:
     if ans.lower() == "grand prix" or ans.lower() == "gp":
         os.system("cls")
-        os.system("The image is of Grand Prix Results.")
+        print("The image is of Grand Prix Results.")
         gp_flag = 1
         break
 
     elif ans.lower() == "a3" or ans.lower() == "":
         os.system("cls")
-        os.system("The image is of A3 Results.")
+        print("The image is of A3 Results.")
         break
 
     else:
@@ -77,7 +83,7 @@ while True:
             "Invalid Input! \nWhich will you be scanning? \nEnter: A3 or Grand Prix(GP)\n"
         )
 
-
+# Change paths based on Windows or WSL
 if platform.system().lower() != "windows":
     from wslpath import wslpath as wp
 
@@ -85,8 +91,7 @@ if platform.system().lower() != "windows":
     image_path = wp(image_path)
 
 
-pytesseract.pytesseract.tesseract_cmd = tesseract_path
-
+# Username Input Step
 player_loc = "Not Player"
 
 if os.path.isfile("userData.p"):
@@ -125,16 +130,62 @@ else:
     time.sleep(2)
     os.system("cls")
 
+
 print("Will be grabbing Score data for user: {}".format(mainPlayer))
 
-today = date.today()
-today = today.strftime("%m/%d/%Y")
+# Player 1 & 2 Search tile Locations
+p1_loc = [
+    (slice(552, 591), slice(330, 591)),
+    (slice(415, 458), slice(750, 1170)),
+    (slice(550, 590), slice(630, 734)),
+    (slice(600, 880), slice(600, 734)),
+    (slice(734, 772), slice(782, 922)),
+    (slice(817, 858), slice(782, 922)),
+    (slice(152, 202), slice(585, 655)),
+]
 
-cwd = os.getcwd()
-tessdata_dir_config = r"--tessdata-dir " + os.path.relpath(cwd)
+p2_loc = [
+    (slice(552, 591), slice(330, 591)),
+    (slice(415, 458), slice(750, 1170)),
+    (slice(554, 589), slice(1389, 1487)),
+    (slice(600, 866), slice(1375, 1493)),
+    (slice(818, 858), slice(1539, 1664)),
+    (slice(817, 858), slice(782, 922)),
+    (slice(152, 202), slice(1267, 1342)),
+]
 
+gp1_loc = [
+    (slice(552, 591), slice(330, 591)),
+    (slice(415, 458), slice(750, 1170)),
+    (slice(550, 590), slice(630, 734)),
+    (slice(600, 866), slice(1375, 1493)),
+    (slice(734, 772), slice(782, 922)),
+    (slice(817, 858), slice(782, 922)),
+    (slice(152, 202), slice(585, 655)),
+]
+
+gp2_loc = [
+    (slice(552, 591), slice(330, 591)),
+    (slice(415, 458), slice(750, 1170)),
+    (slice(550, 590), slice(630, 734)),
+    (slice(600, 880), slice(600, 734)),
+    (slice(734, 772), slice(782, 922)),
+    (slice(817, 858), slice(782, 922)),
+    (slice(152, 202), slice(1267, 1342)),
+]
+
+# Loading CSV File
+csv = pd.read_csv(fileName, header="infer")
+
+# Tesseract OCR Initiallization
+pytesseract.pytesseract.tesseract_cmd = tesseract_path
+
+# Full Combo Rank List
 fcRank = {"MFC": 4, "PFC": 3, "GrFC": 2, "GFC": 1, "NoFC": 0}
 
+# Current Date
+today = date.today()
+today = today.strftime("%m/%d/%Y")
 
 img = cv2.imread(image_path)
 
@@ -161,44 +212,14 @@ gray_threshold = cv2.threshold(gray, 130, 255, cv2.THRESH_BINARY_INV)[1]
 gray_not = cv2.bitwise_not(gray_threshold)
 
 
-cv2.imshow("Frame", gray_not)
-# Waits for a keystroke
-cv2.waitKey(0)
+# cv2.imshow("Frame", gray_not)
+# # Waits for a keystroke
+# cv2.waitKey(0)
 
 screenOut = pytesseract.image_to_string(
     gray_not[10:58, 764:1153], lang="eng", config="--psm 10  " + tessdata_dir_config
 )
 
-
-p1_loc = [
-    (slice(552, 591), slice(330, 591)),
-    (slice(415, 458), slice(750, 1170)),
-    (slice(550, 590), slice(630, 734)),
-    (slice(600, 880), slice(600, 734)),
-    (slice(734, 772), slice(782, 922)),
-    (slice(817, 858), slice(782, 922)),
-    (slice(152, 202), slice(585, 655)),
-]
-
-p2_loc = [
-    (slice(552, 591), slice(330, 591)),
-    (slice(415, 458), slice(750, 1170)),
-    (slice(554, 589), slice(1389, 1487)),
-    (slice(600, 866), slice(1375, 1493)),
-    (slice(818, 858), slice(1539, 1664)),
-    (slice(817, 858), slice(782, 922)),
-    (slice(152, 202), slice(1267, 1342)),
-]
-
-gp_loc = [
-    (slice(552, 591), slice(330, 591)),
-    (slice(415, 458), slice(750, 1170)),
-    (slice(550, 590), slice(630, 734)),
-    (slice(600, 880), slice(600, 734)),
-    (slice(734, 772), slice(782, 922)),
-    (slice(817, 858), slice(782, 922)),
-    (slice(152, 202), slice(1267, 1342)),
-]
 
 if "results" in screenOut.lower():
     player1Out = pytesseract.image_to_string(
@@ -213,8 +234,11 @@ if "results" in screenOut.lower():
         config="--psm 10  " + tessdata_dir_config,
     ).strip()
 
-    if gp_flag == 1:
-        player_loc = gp_loc
+    if gp_flag == 1 and player1Out.lower() == mainPlayer.lower():
+        player_loc = gp1_loc
+
+    elif gp_flag == 1 and player2Out.lower() == mainPlayer.lower():
+        player_loc = gp2_loc
 
     elif player1Out.lower() == mainPlayer.lower():
         player_loc = p1_loc
@@ -329,4 +353,69 @@ if "results" in screenOut.lower():
             print("Slow: " + slowOut.split()[0])
             print("EX: {}".format(exOut))
             print("Money Score: {}".format(score))
-            cv2.waitKey(0)
+
+            # Updates or Stores data into CSV File
+            if (csv["Song"].eq(songOut)).any():
+                row_index = csv.index[csv["Song"].isin([songOut])][0]
+
+                # dateOfLastPlay
+                csv.iloc[row_index, 6] = today
+
+                # Money Score
+                if csv.iloc[row_index, 2] <= score:
+                    csv.iloc[row_index, 2] = score
+
+                # EX
+                if csv.iloc[row_index, 3] <= exOut:
+                    csv.iloc[row_index, 3] = exOut
+
+                # FC
+                if fcRank[csv.iloc[row_index, 4]] <= fcRank[fullCombo]:
+                    csv.iloc[row_index, 4] = fullCombo
+                    # dateOfFC
+                    csv.iloc[row_index, 5] = today
+
+                elif csv.iloc[row_index, 4] == fullCombo:
+                    # dateOfFC
+                    csv.iloc[row_index, 5] = today
+
+                # MaxCombo
+                if csv.iloc[row_index, 7] < maxOut:
+                    csv.iloc[row_index, 7] = maxOut
+
+                # Combo Scores
+                if csv.iloc[row_index, 8] <= marvOut:
+                    csv.iloc[row_index, 8] = marvOut
+                    csv.iloc[row_index, 9] = perfOut
+                    csv.iloc[row_index, 10] = gretOut
+                    csv.iloc[row_index, 11] = goodOut
+                    csv.iloc[row_index, 12] = okOut
+                    csv.iloc[row_index, 13] = missOut
+                    csv.iloc[row_index, 14] = int(slowOut.split()[0])
+                    csv.iloc[row_index, 15] = int(fastOut.split()[0])
+
+                    csv.to_csv(fileName, mode="w", index=False, header=True)
+                    print("Updated DDR data for song: " + songOut)
+
+            else:
+                data = {
+                    "Diff": [diffOut.split()[0]],
+                    "Song": [songOut],
+                    "MoneyScore": [score],
+                    "EX": [exOut],
+                    "FC": [fullCombo],
+                    "dateOfFC": [today],
+                    "dateOfLastPlay": [today],
+                    "MaxCombo": [maxOut],
+                    "Marvelous": [marvOut],
+                    "Perfect": [perfOut],
+                    "Great": [gretOut],
+                    "Good": [goodOut],
+                    "OK": [okOut],
+                    "Miss": [missOut],
+                    "Slow": [slowOut.split()[0]],
+                    "Fast": [fastOut.split()[0]],
+                }
+                df = pd.DataFrame(data)
+                df.to_csv(fileName, mode="a", index=False, header=False)
+                print("First time play data added for new song: " + songOut)
