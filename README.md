@@ -17,7 +17,7 @@ These strings are then stored within a csv using Pandas for later viewing.
 4. There are still some bugs. Sue me, hahaha. But don't really, I'll address them asap.
 
 5. Grand Prix for now has to be set to Player 2 for scanning.  
-*Will look into this at a later time*
+   _Will look into this at a later time_
 
 ## Required Installs:
 
@@ -62,11 +62,11 @@ These strings are then stored within a csv using Pandas for later viewing.
 
 4. Select desired video to scan from within the popup window.
 
-6. Select whether you will be scanning A3 or Grand Prix gameplay
+5. Select whether you will be scanning A3 or Grand Prix gameplay
 
-5. Enter your player name and enjoy the data capture.
+6. Enter your player name and enjoy the data capture.
 
-6. Your data is saved in _Scores.csv_.
+7. Your data is saved in _Scores.csv_.
 
 ## How to script with a Screenshot:
 
@@ -80,11 +80,11 @@ These strings are then stored within a csv using Pandas for later viewing.
 
 4. Select desired image to scan from within the popup window.
 
-6. Select whether you will be scanning A3 or Grand Prix gameplay
+5. Select whether you will be scanning A3 or Grand Prix gameplay
 
-5. Enter your player name and enjoy the data capture.
+6. Enter your player name and enjoy the data capture.
 
-6. Your data is saved in _Scores.csv_.
+7. Your data is saved in _Scores.csv_.
 
 ## Please use for Recreational Purposes only.
 
