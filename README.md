@@ -16,6 +16,9 @@ These strings are then stored within a csv using Pandas for later viewing.
 
 4. There are still some bugs. Sue me, hahaha. But don't really, I'll address them asap.
 
+5. Grand Prix for now has to be set to Player 2 for scanning.  
+*Will look into this at a later time*
+
 ## Required Installs:
 
 1. [Google's Tesseract](https://tesseract-ocr.github.io/tessdoc/Installation.html)
