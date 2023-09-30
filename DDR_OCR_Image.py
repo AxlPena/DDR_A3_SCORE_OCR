@@ -62,6 +62,9 @@ image_path = fd.askopenfilename(initialdir="/", parent=window)
 # Grand Prix Image Flag
 gp_flag = 0
 
+# E-Amusement Card Image Flag
+ea_flag = 0
+
 # User inouts which version of thegame will be scanned
 ans = input("Which will you be scanning? \nEnter: A3 or Grand Prix(GP) or EAmuse(EA)\n")
 
@@ -76,10 +79,11 @@ while True:
         os.system("cls")
         print("The image is of A3 Results.")
         break
-    
+
     elif ans.lower() == "eamuse" or ans.lower() == "ea":
         os.system("cls")
         print("The image is of E-Amusement Card Results.")
+        ea_flag = 1
         break
 
     else:
@@ -179,7 +183,7 @@ gp2_loc = [
     (slice(152, 202), slice(1267, 1342)),
 ]
 
-eamuse_loc = [
+ea_loc = [
     (slice(710, 1040), slice(485, 650)),
     (slice(95, 160), slice(480, 1825)),
     (slice(35, 75), slice(1425, 1820)),
@@ -227,7 +231,7 @@ gray_not = cv2.bitwise_not(gray_threshold)
 # cv2.imshow("Frame", gray_not)
 # # Waits for a keystroke
 # cv2.waitKey(0)
-if amuse_flag == 0:
+if ea_flag == 0:
     screenOut = pytesseract.image_to_string(
         gray_not[10:58, 764:1153], lang="eng", config="--psm 10  " + tessdata_dir_config
     )
@@ -287,16 +291,20 @@ if amuse_flag == 0:
                     config="--psm 6 -c tessedit_char_whitelist=0123456789",
                 )
 
-                fastOut = pytesseract.image_to_string(
-                    remove_outline(gray_not[player_loc[4]]),
-                    lang="eng",
-                    config="--psm 10 -c tessedit_char_whitelist=0123456789",
+                fastOut = int(
+                    pytesseract.image_to_string(
+                        remove_outline(gray_not[player_loc[4]]),
+                        lang="eng",
+                        config="--psm 10 -c tessedit_char_whitelist=0123456789",
+                    ).split()[0]
                 )
 
-                slowOut = pytesseract.image_to_string(
-                    remove_outline(gray_not[player_loc[5]]),
-                    lang="eng",
-                    config="--psm 10 -c tessedit_char_whitelist=0123456789",
+                slowOut = int(
+                    pytesseract.image_to_string(
+                        remove_outline(gray_not[player_loc[5]]),
+                        lang="eng",
+                        config="--psm 10 -c tessedit_char_whitelist=0123456789",
+                    ).split()[0]
                 )
 
                 songOut = pytesseract.image_to_string(
@@ -313,29 +321,31 @@ if amuse_flag == 0:
                 )
 
 else:
+    song_threshold = cv2.threshold(gray[ea_loc[1]], 220, 255, cv2.THRESH_BINARY)[1]
 
-    song_threshold = cv2.threshold(
-                    gray[eamuse_loc[1]], 220, 255, cv2.THRESH_BINARY
-                )[1]
+    songOut = pytesseract.image_to_string(
+        gray_not[ea_loc[1]],
+        lang="eng+jpn",
+        config="--psm 10  " + tessdata_dir_config,
+    )
 
     maxOut = pytesseract.image_to_string(
-        gray_not[eamuse_loc[4]],
+        gray_not[ea_loc[4]],
         lang="eng",
         config="--psm 10 -c tessedit_char_whitelist=0123456789",
     )
 
     comboOut = pytesseract.image_to_string(
-        cv2.GaussianBlur(gray_not[eamuse_loc[0]], (5, 5), 0),
+        cv2.GaussianBlur(gray_not[ea_loc[0]], (5, 5), 0),
         lang="eng",
         config="--psm 6 -c tessedit_char_whitelist=0123456789",
     )
 
     diffOut = pytesseract.image_to_string(
-                    cv2.dilate(gray_not[eamuse_loc[3]], np.ones((3, 3), np.uint8)),
-                    lang="eng",
-                    config="--psm 10  -c tessedit_char_whitelist=0123456789"
-                    + tessdata_dir_config,
-                )
+        gray_not[ea_loc[3]],
+        lang="eng",
+        config="--psm 10  -c tessedit_char_whitelist=0123456789" + tessdata_dir_config,
+    )
 
     fastOut = "N/A"
     slowOut = "N/A"
@@ -370,9 +380,7 @@ marvS = 1000000 / sc
 perfS = marvS - 10
 greatS = 0.6 * marvS - 10
 goodS = 0.2 * marvS - 10
-score = (
-    (marvOut + okOut) * marvS + perfOut * perfS + gretOut * greatS + goodOut * goodS
-)
+score = (marvOut + okOut) * marvS + perfOut * perfS + gretOut * greatS + goodOut * goodS
 score = int(np.floor(score / 10) * 10)
 
 print("Song: {}".format(songOut))
@@ -427,8 +435,8 @@ if (csv["Song"].eq(songOut)).any():
         csv.iloc[row_index, 11] = goodOut
         csv.iloc[row_index, 12] = okOut
         csv.iloc[row_index, 13] = missOut
-        csv.iloc[row_index, 14] = int(slowOut.split()[0])
-        csv.iloc[row_index, 15] = int(fastOut.split()[0])
+        csv.iloc[row_index, 14] = slowOut
+        csv.iloc[row_index, 15] = fastOut
 
         csv.to_csv(fileName, mode="w", index=False, header=True)
         print("Updated DDR data for song: " + songOut)
