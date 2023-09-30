@@ -86,6 +86,14 @@ These strings are then stored within a csv using Pandas for later viewing.
 
 7. Your data is saved in _Scores.csv_.
 
+## Questionnaires
+
+1. [What hardware are you trying to run this code on?](https://docs.google.com/forms/d/e/1FAIpQLSd9BNrRyw-mB6o7lmgeFiJ1cXB7xkajB14ey92_RlnAMsgTQg/viewform?usp=sf_link)
+
+2. [What are some features you'd like to see?](https://docs.google.com/forms/d/e/1FAIpQLSehLcxR5Lqjg3792q3hRLyyfchVs-9IrgOl1vtUjM0P9uussg/viewform?usp=sf_link)
+
+3. [Report Bugs Here!](https://docs.google.com/forms/d/e/1FAIpQLSeIKTE7zTP5AYHhoyjohF999bj40-kMobjlXcATptZqUAN8Sg/viewform?usp=sf_link)
+
 ## Please use for Recreational Purposes only.
 
 ## Help me pay my bills (Donation Page)
