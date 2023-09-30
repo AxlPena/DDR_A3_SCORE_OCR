@@ -57,9 +57,9 @@ These strings are then stored within a csv using Pandas for later viewing.
 
 4. Select desired video to scan from within the popup window.
 
-4. Enter your player name and enjoy the data capture.
+5. Enter your player name and enjoy the data capture.
 
-5. Your data is saved in _Scores.csv_.
+6. Your data is saved in _Scores.csv_.
 
 ## How to script with a Screenshot:
 
@@ -76,7 +76,6 @@ These strings are then stored within a csv using Pandas for later viewing.
 5. Enter your player name and enjoy the data capture.
 
 6. Your data is saved in _Scores.csv_.
-
 
 ## Please use for Recreational Purposes only.
 
