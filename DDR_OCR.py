@@ -97,6 +97,30 @@ while True:
         )
 
 
+# Grand Prix Image Flag
+gp_flag = 0
+
+ans = input("Which will you be scanning? \nEnter: A3 or Grand Prix(GP)\n")
+
+while True:
+    if ans.lower() == "grand prix" or ans.lower() == "gp":
+        os.system("cls")
+        os.system("The image is of Grand Prix Results.")
+        gp_flag = 1
+        break
+
+    elif ans.lower() == "a3" or ans.lower() == "":
+        os.system("cls")
+        os.system("The image is of A3 Results.")
+        break
+
+    else:
+        os.system("cls")
+        ans = input(
+            "Invalid Input! \nWhich will you be scanning? \nEnter: A3 or Grand Prix(GP)\n"
+        )
+
+
 # Change paths based on OS
 if platform.system().lower() != "windows":
     from wslpath import wslpath as wp
@@ -162,6 +186,16 @@ p2_loc = [
     (slice(554, 590), slice(1389, 1487)),
     (slice(600, 880), slice(1375, 1493)),
     (slice(818, 858), slice(1539, 1664)),
+    (slice(817, 858), slice(782, 922)),
+    (slice(152, 202), slice(1267, 1342)),
+]
+
+gp_loc = [
+    (slice(552, 591), slice(330, 591)),
+    (slice(415, 458), slice(750, 1170)),
+    (slice(550, 590), slice(630, 734)),
+    (slice(600, 880), slice(600, 734)),
+    (slice(734, 772), slice(782, 922)),
     (slice(817, 858), slice(782, 922)),
     (slice(152, 202), slice(1267, 1342)),
 ]
@@ -249,7 +283,7 @@ while cap.isOpened():
         screenOut = pytesseract.image_to_string(
             gray_not[10:58, 764:1153],
             lang="eng",
-            config="--psm 6  " + tessdata_dir_config,
+            config="--psm 10  " + tessdata_dir_config,
         )
 
         if "results" in screenOut.lower():
@@ -257,18 +291,21 @@ while cap.isOpened():
             player1Out = pytesseract.image_to_string(
                 gray_not[115:153, 39:231],
                 lang="eng+jpn",
-                config="--psm 6  " + tessdata_dir_config,
+                config="--psm 10  " + tessdata_dir_config,
             ).strip()
 
             # Scans for Player 2 Name
             player2Out = pytesseract.image_to_string(
                 gray_not[115:153, 1677:1902],
                 lang="eng+jpn",
-                config="--psm 6  " + tessdata_dir_config,
+                config="--psm 10  " + tessdata_dir_config,
             ).strip()
 
             # Selects Image Slices based on user Player position
-            if player1Out.lower() == mainPlayer.lower():
+            if gp_flag == 1:
+                player_loc = gp_loc
+
+            elif player1Out.lower() == mainPlayer.lower():
                 player_loc = p1_loc
 
             elif player2Out.lower() == mainPlayer.lower():
@@ -283,7 +320,7 @@ while cap.isOpened():
                 tabOut = pytesseract.image_to_string(
                     gray_not[player_loc[0]],
                     lang="eng+jpn",
-                    config="--psm 6  " + tessdata_dir_config,
+                    config="--psm 10  " + tessdata_dir_config,
                 )
 
                 if "max combo" in tabOut.lower():
@@ -301,7 +338,7 @@ while cap.isOpened():
                     maxOut = pytesseract.image_to_string(
                         gray_not[player_loc[2]],
                         lang="eng",
-                        config="--psm 6 -c tessedit_char_whitelist=0123456789",
+                        config="--psm 10 -c tessedit_char_whitelist=0123456789",
                     )
 
                     # Scans text in Combo ROI
@@ -317,28 +354,28 @@ while cap.isOpened():
                     fastOut = pytesseract.image_to_string(
                         remove_outline(gray_not[player_loc[4]]),
                         lang="eng",
-                        config="--psm 6 -c tessedit_char_whitelist=0123456789",
+                        config="--psm 10 -c tessedit_char_whitelist=0123456789",
                     )
 
                     # Scans text in Slow steps ROI
                     slowOut = pytesseract.image_to_string(
                         remove_outline(gray_not[player_loc[5]]),
                         lang="eng",
-                        config="--psm 6 -c tessedit_char_whitelist=0123456789",
+                        config="--psm 10 -c tessedit_char_whitelist=0123456789",
                     )
 
                     # Scans text in Song title ROI
                     songOut = pytesseract.image_to_string(
                         song_threshold,
                         lang="eng+jpn",
-                        config="--psm 6  " + tessdata_dir_config,
+                        config="--psm 10  " + tessdata_dir_config,
                     )
 
                     # Scans text in Difficulty ROI
                     diffOut = pytesseract.image_to_string(
                         cv2.dilate(gray_not[player_loc[6]], np.ones((3, 3), np.uint8)),
                         lang="eng",
-                        config="--psm 6  -c tessedit_char_whitelist=0123456789"
+                        config="--psm 10  -c tessedit_char_whitelist=0123456789"
                         + tessdata_dir_config,
                     )
 

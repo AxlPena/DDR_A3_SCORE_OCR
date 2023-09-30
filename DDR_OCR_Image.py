@@ -49,8 +49,34 @@ window = Tk()
 window.withdraw()
 
 window.title("Select the Screenshot to Scan.")
+os.system("cls")
+print("Select the Screenshot to Scan.")
 
 image_path = fd.askopenfilename(initialdir="/", parent=window)
+
+# Grand Prix Image Flag
+gp_flag = 0
+
+ans = input("Which will you be scanning? \nEnter: A3 or Grand Prix(GP)\n")
+
+while True:
+    if ans.lower() == "grand prix" or ans.lower() == "gp":
+        os.system("cls")
+        os.system("The image is of Grand Prix Results.")
+        gp_flag = 1
+        break
+
+    elif ans.lower() == "a3" or ans.lower() == "":
+        os.system("cls")
+        os.system("The image is of A3 Results.")
+        break
+
+    else:
+        os.system("cls")
+        ans = input(
+            "Invalid Input! \nWhich will you be scanning? \nEnter: A3 or Grand Prix(GP)\n"
+        )
+
 
 if platform.system().lower() != "windows":
     from wslpath import wslpath as wp
@@ -61,9 +87,7 @@ if platform.system().lower() != "windows":
 
 pytesseract.pytesseract.tesseract_cmd = tesseract_path
 
-
 player_loc = "Not Player"
-
 
 if os.path.isfile("userData.p"):
     mainPlayer = pickle.load(open("userData.p", "rb"))
@@ -114,6 +138,19 @@ fcRank = {"MFC": 4, "PFC": 3, "GrFC": 2, "GFC": 1, "NoFC": 0}
 
 img = cv2.imread(image_path)
 
+height, width, _ = img.shape
+
+# Used to deteremine if upscaling is needed.
+
+if height != 1080 and width != 1920:
+    print(
+        "Image resolution is {}x{}. \nWill force 1920x1080 by upscaling resolution. \n***Results will Vary!***\n".format(
+            width, height
+        )
+    )
+    img = cv2.resize(img, (1920, 1080), interpolation=cv2.INTER_LANCZOS4)
+
+
 mNokEX = 3
 pEX = 2
 gEX = 1
@@ -124,14 +161,14 @@ gray_threshold = cv2.threshold(gray, 130, 255, cv2.THRESH_BINARY_INV)[1]
 gray_not = cv2.bitwise_not(gray_threshold)
 
 
-# cv2.imshow("Frame", gray_not)
-# # Waits for a keystroke
-# cv2.waitKey(0)
+cv2.imshow("Frame", gray_not)
+# Waits for a keystroke
+cv2.waitKey(0)
 
 screenOut = pytesseract.image_to_string(
-    gray_not[10:58, 764:1153], lang="eng", config="--psm 6  " + tessdata_dir_config
+    gray_not[10:58, 764:1153], lang="eng", config="--psm 10  " + tessdata_dir_config
 )
-print(screenOut)
+
 
 p1_loc = [
     (slice(552, 591), slice(330, 591)),
@@ -153,20 +190,33 @@ p2_loc = [
     (slice(152, 202), slice(1267, 1342)),
 ]
 
+gp_loc = [
+    (slice(552, 591), slice(330, 591)),
+    (slice(415, 458), slice(750, 1170)),
+    (slice(550, 590), slice(630, 734)),
+    (slice(600, 880), slice(600, 734)),
+    (slice(734, 772), slice(782, 922)),
+    (slice(817, 858), slice(782, 922)),
+    (slice(152, 202), slice(1267, 1342)),
+]
+
 if "results" in screenOut.lower():
     player1Out = pytesseract.image_to_string(
-        gray_not[115:153, 39:231],
+        gray_not[115:158, 39:231],
         lang="eng+jpn",
-        config="--psm 6  " + tessdata_dir_config,
+        config="--psm 10  " + tessdata_dir_config,
     ).strip()
 
     player2Out = pytesseract.image_to_string(
-        gray_not[115:153, 1677:1902],
+        gray_not[115:158, 1677:1902],
         lang="eng+jpn",
-        config="--psm 6  " + tessdata_dir_config,
+        config="--psm 10  " + tessdata_dir_config,
     ).strip()
 
-    if player1Out.lower() == mainPlayer.lower():
+    if gp_flag == 1:
+        player_loc = gp_loc
+
+    elif player1Out.lower() == mainPlayer.lower():
         player_loc = p1_loc
 
     elif player2Out.lower() == mainPlayer.lower():
@@ -180,7 +230,7 @@ if "results" in screenOut.lower():
         tabOut = pytesseract.image_to_string(
             gray_not[player_loc[0]],
             lang="eng+jpn",
-            config="--psm 6  " + tessdata_dir_config,
+            config="--psm 10  " + tessdata_dir_config,
         )
 
         if "max combo" in tabOut.lower():
@@ -193,11 +243,11 @@ if "results" in screenOut.lower():
             maxOut = pytesseract.image_to_string(
                 gray_not[player_loc[2]],
                 lang="eng",
-                config="--psm 6 -c tessedit_char_whitelist=0123456789",
+                config="--psm 10 -c tessedit_char_whitelist=0123456789",
             )
 
             comboOut = pytesseract.image_to_string(
-                cv2.GaussianBlur(gray_not[player_loc[3]], (7, 7), 0),
+                cv2.GaussianBlur(gray_not[player_loc[3]], (5, 5), 0),
                 lang="eng",
                 config="--psm 6 -c tessedit_char_whitelist=0123456789",
             )
@@ -205,23 +255,25 @@ if "results" in screenOut.lower():
             fastOut = pytesseract.image_to_string(
                 remove_outline(gray_not[player_loc[4]]),
                 lang="eng",
-                config="--psm 6 -c tessedit_char_whitelist=0123456789",
+                config="--psm 10 -c tessedit_char_whitelist=0123456789",
             )
 
             slowOut = pytesseract.image_to_string(
                 remove_outline(gray_not[player_loc[5]]),
                 lang="eng",
-                config="--psm 6 -c tessedit_char_whitelist=0123456789",
+                config="--psm 10 -c tessedit_char_whitelist=0123456789",
             )
 
             songOut = pytesseract.image_to_string(
-                song_threshold, lang="eng+jpn", config="--psm 6  " + tessdata_dir_config
+                song_threshold,
+                lang="eng+jpn",
+                config="--psm 10  " + tessdata_dir_config,
             )
 
             diffOut = pytesseract.image_to_string(
                 cv2.dilate(gray_not[player_loc[6]], np.ones((3, 3), np.uint8)),
                 lang="eng",
-                config="--psm 6  -c tessedit_char_whitelist=0123456789"
+                config="--psm 10  -c tessedit_char_whitelist=0123456789"
                 + tessdata_dir_config,
             )
 
