@@ -80,9 +80,10 @@ These strings are then stored within a csv using Pandas for later viewing.
 
 4. Select desired image to scan from within the popup window.
 
-5. Select whether you will be scanning A3 or Grand Prix gameplay
+5. Select whether you will be scanning A3 or Grand Prix gameplay or E-Amusement Card
 
-6. Enter your player name and enjoy the data capture.
+6. Enter your player name and enjoy the data capture.  
+*Not needed for E-Amusement Card but can add name regardless.*
 
 7. Your data is saved in _Scores.csv_.
 
