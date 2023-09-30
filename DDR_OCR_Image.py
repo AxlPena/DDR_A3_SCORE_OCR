@@ -114,6 +114,19 @@ fcRank = {"MFC": 4, "PFC": 3, "GrFC": 2, "GFC": 1, "NoFC": 0}
 
 img = cv2.imread(image_path)
 
+height, width, _ = img.shape
+
+# Used to deteremine if upscaling is needed.
+
+if height != 1080 and width != 1920:
+    print(
+        "Image resolution is {}x{}. \nWill force 1920x1080 by upscaling resolution. \n***Results will Vary!***\n".format(
+            width, height
+        )
+    )
+    img = cv2.resize(img, (1920, 1080), interpolation=cv2.INTER_LANCZOS4)
+
+
 mNokEX = 3
 pEX = 2
 gEX = 1
@@ -124,9 +137,9 @@ gray_threshold = cv2.threshold(gray, 130, 255, cv2.THRESH_BINARY_INV)[1]
 gray_not = cv2.bitwise_not(gray_threshold)
 
 
-# cv2.imshow("Frame", gray_not)
-# # Waits for a keystroke
-# cv2.waitKey(0)
+cv2.imshow("Frame", gray_not)
+# Waits for a keystroke
+cv2.waitKey(0)
 
 screenOut = pytesseract.image_to_string(
     gray_not[10:58, 764:1153], lang="eng", config="--psm 6  " + tessdata_dir_config
@@ -153,15 +166,16 @@ p2_loc = [
     (slice(152, 202), slice(1267, 1342)),
 ]
 
+
 if "results" in screenOut.lower():
     player1Out = pytesseract.image_to_string(
-        gray_not[115:153, 39:231],
+        gray_not[115:158, 39:231],
         lang="eng+jpn",
         config="--psm 6  " + tessdata_dir_config,
     ).strip()
 
     player2Out = pytesseract.image_to_string(
-        gray_not[115:153, 1677:1902],
+        gray_not[115:158, 1677:1902],
         lang="eng+jpn",
         config="--psm 6  " + tessdata_dir_config,
     ).strip()
