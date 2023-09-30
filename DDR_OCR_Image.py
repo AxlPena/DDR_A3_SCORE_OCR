@@ -54,7 +54,7 @@ print("Select the Screenshot to Scan.")
 
 image_path = fd.askopenfilename(initialdir="/", parent=window)
 
-#Grand Prix Image Flag
+# Grand Prix Image Flag
 gp_flag = 0
 
 ans = input("Which will you be scanning? \nEnter: A3 or Grand Prix(GP)\n")
@@ -76,7 +76,6 @@ while True:
         ans = input(
             "Invalid Input! \nWhich will you be scanning? \nEnter: A3 or Grand Prix(GP)\n"
         )
-
 
 
 if platform.system().lower() != "windows":
@@ -169,7 +168,7 @@ cv2.waitKey(0)
 screenOut = pytesseract.image_to_string(
     gray_not[10:58, 764:1153], lang="eng", config="--psm 10  " + tessdata_dir_config
 )
-print(screenOut)
+
 
 p1_loc = [
     (slice(552, 591), slice(330, 591)),
@@ -223,7 +222,6 @@ if "results" in screenOut.lower():
     elif player2Out.lower() == mainPlayer.lower():
         player_loc = p2_loc
 
-    
     else:
         player_loc = "Not Player"
         print("{} is not playing this set :C.".format(mainPlayer))
