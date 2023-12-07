@@ -171,6 +171,7 @@ gp1_loc = [
     (slice(734, 772), slice(782, 922)),
     (slice(817, 858), slice(782, 922)),
     (slice(152, 202), slice(585, 655)),
+    
 ]
 
 gp2_loc = [
@@ -181,6 +182,7 @@ gp2_loc = [
     (slice(734, 772), slice(782, 922)),
     (slice(817, 858), slice(782, 922)),
     (slice(152, 202), slice(1267, 1342)),
+    (slice(818,921),slice(54,78)),
 ]
 
 ea_loc = [
