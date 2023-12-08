@@ -161,6 +161,7 @@ p2_loc = [
     (slice(818, 858), slice(1539, 1664)),
     (slice(817, 858), slice(782, 922)),
     (slice(152, 202), slice(1267, 1342)),
+    (slice(80,115),slice(1235,1375)),
 ]
 
 gp1_loc = [
@@ -182,7 +183,7 @@ gp2_loc = [
     (slice(734, 772), slice(782, 922)),
     (slice(817, 858), slice(782, 922)),
     (slice(152, 202), slice(1267, 1342)),
-    (slice(818,921),slice(54,78)),
+    (slice(80,115),slice(1235,1375)),
 ]
 
 ea_loc = [
@@ -230,9 +231,6 @@ gray_threshold = cv2.threshold(gray, 130, 255, cv2.THRESH_BINARY_INV)[1]
 gray_not = cv2.bitwise_not(gray_threshold)
 
 
-# cv2.imshow("Frame", gray_not)
-# # Waits for a keystroke
-# cv2.waitKey(0)
 if ea_flag == 0:
     screenOut = pytesseract.image_to_string(
         gray_not[10:58, 764:1153], lang="eng", config="--psm 10  " + tessdata_dir_config
@@ -274,6 +272,12 @@ if ea_flag == 0:
                 config="--psm 10  " + tessdata_dir_config,
             )
 
+            playTypeOut_threshold = cv2.threshold(gray[player_loc[7]], 220, 255, cv2.THRESH_BINARY_INV)[1]
+            
+            # cv2.imshow("Frame", playTypeOut_threshold)
+            # # Waits for a keystroke
+            # cv2.waitKey(0)
+
             if "max combo" in tabOut.lower():
                 # [slice(550,590),slice(630,734)] [slice(550,880),slice(600,734)]
 
@@ -288,7 +292,7 @@ if ea_flag == 0:
                 )
 
                 comboOut = pytesseract.image_to_string(
-                    cv2.GaussianBlur(gray_not[player_loc[3]], (5, 5), 0),
+                    cv2.GaussianBlur(gray_not[player_loc[3]], (3, 3), 0),
                     lang="eng",
                     config="--psm 6 -c tessedit_char_whitelist=0123456789",
                 )
@@ -320,6 +324,12 @@ if ea_flag == 0:
                     lang="eng",
                     config="--psm 10  -c tessedit_char_whitelist=0123456789"
                     + tessdata_dir_config,
+                )
+
+                playTypeOut = pytesseract.image_to_string(
+                    playTypeOut_threshold,
+                    lang="eng",
+                    config="--psm 11 -c tessedit_char_whitelist=ABCDEFGHIJKLMNOPQRSTUVWXYZ" + tessdata_dir_config,
                 )
 
 else:
@@ -399,6 +409,7 @@ print("Fast: " + str(fastOut))
 print("Slow: " + str(slowOut))
 print("EX: {}".format(exOut))
 print("Money Score: {}".format(score))
+print("Play Type: {}".format(playTypeOut.split()[0]))
 
 # Updates or Stores data into CSV File
 if (csv["Song"].eq(songOut)).any():
@@ -439,6 +450,7 @@ if (csv["Song"].eq(songOut)).any():
         csv.iloc[row_index, 13] = missOut
         csv.iloc[row_index, 14] = slowOut
         csv.iloc[row_index, 15] = fastOut
+        csv.iloc[row_index, 16] = playTypeOut
 
         csv.to_csv(fileName, mode="w", index=False, header=True)
         print("Updated DDR data for song: " + songOut)
@@ -461,6 +473,7 @@ else:
         "Miss": [missOut],
         "Slow": [slowOut],
         "Fast": [fastOut],
+        "PlayType": [playTypeOut],
     }
     df = pd.DataFrame(data)
     df.to_csv(fileName, mode="a", index=False, header=False)
